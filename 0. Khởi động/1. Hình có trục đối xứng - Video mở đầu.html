@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>Hình có trục đối xứng | Toán 6</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#195856; --brand-dark:#0f3f3d; --brand-light:#2f827d; --brand-soft:#e6f0ee;
+  --ink:#10302d; --muted:#5f8b89; --line:#dbe8e5; --stage-mid:#f1f9f7; --stage-bottom:#dcebe7;
+  --ok:#6fa85b; --bad:#c96a4f; --r:16px; --r-sm:11px; --gold:#ffcf5a;
+  --sh-1:0 1px 2px rgba(13,42,40,.05);
+  --sh-2:0 2px 6px rgba(13,42,40,.06),0 18px 34px -22px rgba(13,42,40,.45);
+  --sh-3:0 10px 30px -12px rgba(13,42,40,.32);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:'Roboto',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.5;color:var(--ink);background:#195658;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit}
+.hide{display:none!important}
+.app{height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:#195658}
+.topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line);box-shadow:var(--sh-1);z-index:20;flex:0 0 auto}
+.logoclip{height:27px;display:flex;align-items:center;flex:0 0 auto}
+.logoclip .logo{height:27px;display:block}
+.titles{flex:1;min-width:0}
+.badge{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--brand);background:var(--brand-soft);border-radius:99px;padding:2px 9px;margin-bottom:2px}
+.titles h1{margin:0;font-weight:700;font-size:18px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-btn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--brand-dark)}
+.tb-btn:hover{background:var(--brand-soft);border-color:var(--brand-light)}
+.tb-btn svg{width:18px;height:18px}
+.main{flex:1;min-height:0;display:flex;flex-direction:column;padding:14px;overflow:hidden;background:#195658}
+.frame{background:#fff;border-radius:var(--r);box-shadow:var(--sh-2);display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.stage{position:relative;flex:1;min-height:0;background:#195658;overflow:hidden}
+.vignette{position:absolute;inset:0;z-index:1;pointer-events:none;box-shadow:inset 0 0 90px rgba(15,63,61,.10)}
+.stage-tools{position:absolute;left:12px;top:12px;z-index:5;display:flex;gap:8px;flex-wrap:wrap}
+.ghost{background:rgba(255,255,255,.88);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 11px;font-size:12.5px;font-weight:500;color:var(--brand-dark);cursor:pointer;box-shadow:var(--sh-1)}
+.ghost[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}
+.stage-nav{position:absolute;top:50%;z-index:6;transform:translateY(-50%);width:38px;height:38px;border-radius:99px;border:1px solid var(--line);background:rgba(255,255,255,.88);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--brand-dark);box-shadow:var(--sh-1);font-size:16px}
+.stage-nav:hover:not(:disabled){background:var(--brand-soft)}
+.stage-nav:disabled{opacity:.4;cursor:not-allowed}
+.stage-nav.prev{left:12px}.stage-nav.next{right:12px}
+.stage-nav.nudge,.nudge{animation:nudgePulse 1.2s ease infinite}
+@keyframes nudgePulse{0%,100%{box-shadow:0 0 0 0 rgba(25,88,86,.55)}50%{box-shadow:0 0 0 9px rgba(25,88,86,0)}}
+
+.vis{position:absolute;z-index:2;left:62px;top:12px;bottom:12px;right:calc(min(560px,46%) + 72px);display:flex;flex-direction:column}
+.lesson{position:absolute;z-index:7;right:60px;top:12px;bottom:12px;width:min(560px,46%);display:flex;flex-direction:column;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-radius:var(--r);box-shadow:var(--sh-3);overflow:hidden}
+.sidebody{flex:1;min-height:0;overflow:auto;padding:18px 20px 16px;background:linear-gradient(#fff,var(--stage-mid) 70%,var(--stage-bottom))}
+.sec{animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--brand-light);margin:0 0 4px}
+.sec h2{margin:0 0 8px;font-size:24px;line-height:1.3;color:var(--brand-dark)}
+.lead{font-size:17px;line-height:1.6;margin:8px 0}
+.muted{color:var(--muted)}
+.chip{display:inline-block;font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-soft);border-radius:99px;padding:3px 11px;margin-bottom:6px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-1);padding:14px 16px;margin:12px 0}
+.card p{font-size:16.5px;line-height:1.55;margin:0}
+.card-in{animation:cardIn .45s ease both}
+@keyframes cardIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+.kcard{border-radius:var(--r-sm);padding:12px 14px;margin-top:10px;border:1.5px solid var(--line);background:#fff;box-shadow:var(--sh-1)}
+.kcard .kh{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--brand);border-radius:99px;padding:4px 12px 4px 9px;margin-bottom:8px}
+.kcard .dot{width:8px;height:8px;border-radius:50%;background:#fff}
+.kcard p{margin:0;font-size:16.5px;line-height:1.6}
+.kwd{font-weight:700;color:var(--brand-light)}
+.checks{display:flex;margin-top:12px;counter-reset:pg}
+.check{counter-increment:pg;flex:1 1 0;min-width:0;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 4px;text-align:center;font-size:14.5px;font-weight:600;color:var(--muted);line-height:1.3}
+.check b{position:relative;z-index:1;width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #cdbd9f;display:flex;align-items:center;justify-content:center;font-size:0;color:#a08f6c}
+.check b::before{content:counter(pg);font-size:13px;font-weight:700}
+.check+.check::before{content:'';position:absolute;top:14px;right:calc(50% + 15px);width:calc(100% - 30px);height:3px;border-radius:3px;background:#e6dcc8}
+.check.done{color:#3f6b32}
+.check.done b{background:var(--ok);border-color:var(--ok);font-size:15px;color:#fff}
+.check.done b::before{content:none}
+.check.done+.check::before{background:var(--ok)}
+.check:not(.done):first-child,.check.done+.check:not(.done){color:var(--brand-dark)}
+.check:not(.done):first-child b,.check.done+.check:not(.done) b{border-color:var(--brand);color:var(--brand);box-shadow:0 0 0 4px rgba(25,88,86,.14)}
+.opts{display:flex;flex-direction:column;gap:8px;margin:10px 0 0}
+.opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;padding:11px 13px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:16.5px;cursor:pointer}
+.opt i{font-style:normal;flex:0 0 24px;height:24px;border-radius:50%;background:var(--brand-soft);color:var(--brand);font-weight:700;font-size:12.5px;display:flex;align-items:center;justify-content:center}
+.opt:hover:not(:disabled){border-color:var(--brand-light);background:var(--stage-mid)}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-dark);font-weight:600}
+.opt.ok i{background:var(--brand);color:#fff}
+.opt.no{border-color:var(--bad);background:#fbeae4;color:#a54527}
+.opt.no i{background:var(--bad);color:#fff}
+.fb{display:none;margin:9px 0 0;padding:10px 13px;border-radius:var(--r-sm);font-size:16px;line-height:1.6}
+.fb.show{display:block}
+.fb.ok{background:var(--brand-soft);color:var(--brand-dark)}
+.fb.no{background:#fbeae4;color:#a54527}
+.fb.info{background:#fff6dd;color:#6b4d13}
+.qbtn{border:0;border-radius:11px;padding:11px 20px;font-size:16px;font-weight:600;cursor:pointer;background:var(--brand);color:#fff;margin:10px 8px 0 0}
+.qbtn:hover:not(:disabled){background:var(--brand-dark)}
+.qbtn.alt{background:#fff;color:var(--brand);border:1.5px solid var(--brand)}
+.next-wrap{margin:16px 0 4px;display:flex;justify-content:flex-end}
+.next-btn{margin:0;font-size:16.5px;padding:12px 22px;animation:nudgePulse 1.4s ease .5s infinite}
+.nar{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-left:4px solid var(--brand-light);border-radius:var(--r-sm);padding:10px 12px;margin:0 0 12px;box-shadow:var(--sh-1)}
+.nar .av{flex:0 0 30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+.nar .tx{font-size:16.5px;line-height:1.6}
+
+/* ===== trình phát video ===== */
+.player{flex:1;min-height:0;display:flex;flex-direction:column;background:#0b2a29;border-radius:var(--r);box-shadow:var(--sh-3);overflow:hidden}
+.screen{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(70% 70% at 50% 45%,#164b49,#081f1e)}
+.pic{position:relative;flex:0 0 auto;transition:transform 8s linear;perspective:1400px;border-radius:6px;box-shadow:0 16px 40px -14px rgba(0,0,0,.6)}
+.pic>img{display:block;width:100%;height:100%;border-radius:6px;user-select:none;-webkit-user-drag:none}
+.fold{position:absolute;inset:0;background-size:100% 100%;border-radius:6px;opacity:0;pointer-events:none;backface-visibility:visible}
+.fold.run{animation:foldIn 3.4s ease-in-out forwards}
+@keyframes foldIn{0%{opacity:.95;transform:none}10%{opacity:.95;transform:none}60%{opacity:.8;transform:var(--fold)}85%{opacity:.8;transform:var(--fold)}100%{opacity:0;transform:var(--fold)}}
+svg.ov{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ov line{vector-effect:non-scaling-stroke}
+.cand line.hit{stroke:transparent;stroke-width:28;cursor:pointer;pointer-events:stroke}
+.cand line.vis{stroke:#fff;stroke-width:3;stroke-dasharray:9 7;filter:drop-shadow(0 0 3px rgba(0,0,0,.7));pointer-events:none;animation:dash 1s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-16}}
+.cand:hover line.vis{stroke:var(--gold);stroke-width:4}
+.cand.no line.vis{stroke:var(--bad);animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-1px)}75%{transform:translateX(1px)}}
+.axis{stroke:var(--gold);stroke-width:4;stroke-dasharray:14 8;filter:drop-shadow(0 0 5px rgba(255,207,90,.9));stroke-dashoffset:0}
+.axis.draw{animation:drawAx 1.2s ease-out both}
+@keyframes drawAx{from{opacity:0}to{opacity:1}}
+.clab{position:absolute;transform:translate(-50%,-50%);background:#fff;color:var(--brand-dark);font-weight:800;font-size:14px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer;border:2px solid var(--gold)}
+.axlab{position:absolute;transform:translate(-50%,-50%);background:var(--gold);color:#4a3200;font-weight:800;font-size:13px;padding:3px 10px;border-radius:99px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.4);animation:fade .5s ease both}
+.sub{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);max-width:88%;background:rgba(6,22,21,.78);color:#fff;font-size:17px;line-height:1.45;padding:8px 16px;border-radius:10px;text-align:center;z-index:4;transition:opacity .3s}
+.sub:empty{opacity:0}
+.ask{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:4;background:var(--gold);color:#4a3200;font-weight:700;font-size:15px;padding:7px 16px;border-radius:99px;box-shadow:var(--sh-3);white-space:nowrap;animation:nudgePulse 1.4s infinite}
+.bigplay{position:absolute;inset:0;margin:auto;z-index:5;width:82px;height:82px;border-radius:50%;border:3px solid #fff;background:rgba(25,88,86,.85);color:#fff;font-size:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding-left:6px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.bigplay:hover{background:var(--brand-light)}
+.ctrl{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#0f3f3d;color:#fff;flex:0 0 auto}
+.ctrl button{width:34px;height:34px;border-radius:9px;border:0;background:rgba(255,255,255,.12);color:#fff;cursor:pointer;font-size:14px}
+.ctrl button:hover{background:rgba(255,255,255,.22)}
+.bar{position:relative;flex:1;height:8px;border-radius:99px;background:rgba(255,255,255,.18);cursor:pointer}
+.bar .seen{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:rgba(255,255,255,.25)}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--gold)}
+.bar .mk{position:absolute;top:50%;width:14px;height:14px;margin-left:-7px;transform:translateY(-50%);border-radius:50%;background:#fff;border:3px solid var(--bad)}
+.bar .mk.done{border-color:var(--ok)}
+.time{font-size:12.5px;font-variant-numeric:tabular-nums;opacity:.85;min-width:80px;text-align:right}
+
+/* tổng kết */
+.gal{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.gal figure{margin:0;position:relative;border-radius:var(--r);overflow:hidden;background:#0b2a29;box-shadow:var(--sh-3);animation:cardIn .5s ease both;display:flex;align-items:center;justify-content:center;padding-bottom:34px}
+.gw{position:relative}
+.gal img{width:100%;height:100%;display:block;border-radius:6px}
+.gal figcaption{position:absolute;left:8px;right:8px;bottom:8px;background:rgba(255,255,255,.92);border-radius:9px;padding:5px 8px;font-size:13px;font-weight:700;color:var(--brand-dark);text-align:center}
+.gal .gx{position:absolute;background:var(--gold);box-shadow:0 0 6px rgba(255,207,90,.9)}
+
+.steps{display:flex;gap:8px;padding:10px 12px;overflow-x:auto;border-top:1px solid var(--line);scrollbar-width:none;flex:0 0 auto}
+.steps,.stage-nav{display:none!important}
+.step{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:7px 13px 7px 8px;border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap}
+.step b{width:20px;height:20px;border-radius:99px;background:var(--brand-soft);color:var(--brand-dark);font-size:11px;display:flex;align-items:center;justify-content:center}
+.step:disabled{opacity:.45;cursor:not-allowed}
+.step[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.step[aria-pressed="true"] b{background:rgba(255,255,255,.25);color:#fff}
+.step.done b{background:var(--brand);color:#fff}
+
+.intro-loader{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;transition:opacity .5s;background:radial-gradient(80% 70% at 50% 40%,#2f827d 0,#195856 58%,#0b2a29 100%)}
+.intro-loader.gone{opacity:0;pointer-events:none}
+.intro-inner{width:100%;max-width:920px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;color:#fff}
+.intro-kicker{font-size:12px;font-weight:700;letter-spacing:.20em;text-transform:uppercase;opacity:.92}
+.intro-inner h1{font-size:clamp(32px,5vw,66px);margin:10px 0 12px;line-height:1.08;font-weight:800;text-shadow:0 4px 18px rgba(0,0,0,.26)}
+.intro-sub{max-width:720px;margin:0 auto 22px;font-size:clamp(14px,1.8vw,20px);line-height:1.72;opacity:.96}
+.intro-explore{width:min(280px,88vw);padding:14px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.16);cursor:pointer;background:rgba(21,92,88,.76);color:#fff;font-weight:700;font-size:15px}
+.intro-explore:hover{background:rgba(21,92,88,.95)}
+.intro-credit{font-size:12px;opacity:.88}
+
+@media (max-width:900px){
+  .main{padding:10px}
+  .stage-nav{width:34px;height:34px;font-size:14px;top:26%}
+  .lesson{left:8px;right:8px;top:auto;bottom:8px;width:auto;height:46%}
+  .vis{left:50px;right:50px;top:8px;bottom:calc(46% + 16px)}
+  .titles h1{font-size:15px}.sec h2{font-size:18px}
+  .sub{font-size:13.5px;bottom:8px}.ask{font-size:12.5px}
+  .step span{display:none}.step{padding:7px 8px}.step[aria-pressed="true"] span{display:inline}
+  .gal figcaption{font-size:11px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="intro" class="intro-loader">
+  <div class="intro-inner">
+    <div class="intro-kicker">Toán 6</div>
+    <h1>Hình có trục đối xứng</h1>
+    <p class="intro-sub">Xem video về những công trình và cảnh đẹp quanh ta, dừng lại tìm “đường gấp” bí mật, rồi khám phá vì sao hình học lại đẹp đến vậy.</p>
+    <button id="btnExplore" class="intro-explore" type="button">▶ Bắt đầu xem</button>
+    <div class="intro-credit">Được phát triển bởi <strong>YooBook</strong></div>
+  </div>
+</div>
+
+<div class="app">
+  <header class="topbar">
+    <div class="logoclip"><img class="logo" alt="YooBook" src="data:image/png;base64,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"></div>
+    <div class="titles">
+      <div class="badge">Toán 6 - Hình có trục đối xứng</div>
+      <h1>Khởi động</h1>
+    </div>
+    <button class="tb-btn" id="btnFull" aria-label="Toàn màn hình" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+  </header>
+  <main class="main">
+    <div class="frame">
+      <div class="stage" id="stage">
+        <div class="vignette" aria-hidden="true"></div>
+        <div class="vis" id="vis"></div>
+        <button class="stage-nav prev" id="btnPrev" type="button" aria-label="Bước trước">◀</button>
+        <button class="stage-nav next" id="btnNext" type="button" aria-label="Bước sau">▶</button>
+        <aside class="lesson"><div class="sidebody" id="sidebody"></div></aside>
+      </div>
+      <div class="steps" id="steps" role="tablist" aria-label="Các cảnh"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const DEV = /[?&]dev\b/.test(location.search);
+
+/* ============ dữ liệu 3 cảnh (GV chỉnh tại đây) ============
+   axis: {type:'v', at: % theo chiều ngang} hoặc {type:'h', at: % theo chiều dọc}
+   cands: các đường gợi ý để HS chọn; ok:true là trục đối xứng           */
+const SCENES = [
+  { name:'Khuê Văn Các', place:'Văn Miếu – Quốc Tử Giám, Hà Nội',
+    src:'https://assets.yoolife.com.vn/yootek/1794792263736-3977.jpg', W:1365, H:2048,
+    axis:{type:'v',at:50.5}, cp:15.6, dur:28.2,
+    aud:['https://assets.yoolife.com.vn/yootek/1794794552168-5529.mp3', 'https://assets.yoolife.com.vn/yootek/1794794556280-5587.mp3', 'https://assets.yoolife.com.vn/yootek/1794794560233-7850.mp3', 'https://assets.yoolife.com.vn/yootek/1794794577095-5260.mp3', 'https://assets.yoolife.com.vn/yootek/1794794580985-1929.mp3', 'https://assets.yoolife.com.vn/yootek/1794794584759-5048.mp3'], qa:'https://assets.yoolife.com.vn/yootek/1794794565073-3204.mp3', oka:'https://assets.yoolife.com.vn/yootek/1794794568980-8348.mp3', noa:'https://assets.yoolife.com.vn/yootek/1794794573214-5015.mp3',
+    cands:[{type:'v',at:28},{type:'v',at:50.5,ok:true},{type:'h',at:44}],
+    cues:[[0,'Đây là Khuê Văn Các – biểu tượng của Thủ đô Hà Nội.'],
+          [5.2,'Hãy nhìn mái ngói cong, ô cửa tròn và hai cột trụ hai bên.'],
+          [10.7,'Nửa bên trái và nửa bên phải trông có giống nhau không?'],
+          [15.8,'Gấp hình theo đường thẳng này…'],
+          [19.6,'…hai nửa của Khuê Văn Các gần như chồng khít lên nhau!'],
+          [23.3,'Đường thẳng đặc biệt đó chính là trục đối xứng của hình.']],
+    q:'Nếu gấp bức ảnh theo một đường thẳng để hai nửa chồng khít lên nhau, em sẽ gấp theo đường nào?',
+    okMsg:'Chính xác! Gấp theo đường thẳng đứng chính giữa, nửa trái và nửa phải trùng khít nhau.',
+    noMsg:'Chưa đúng. Gấp theo đường này, hai phần không chồng khít lên nhau. Thử đường khác nhé!' },
+  { name:'Mặt hồ soi bóng', place:'Một mặt hồ buổi sớm mai',
+    src:'https://assets.yoolife.com.vn/yootek/1794792269090-3749.webp', W:1100, H:504,
+    axis:{type:'h',at:51.5}, cp:14.5, dur:27.8,
+    aud:['https://assets.yoolife.com.vn/yootek/1794794588710-2684.mp3', 'https://assets.yoolife.com.vn/yootek/1794794592576-5423.mp3', 'https://assets.yoolife.com.vn/yootek/1794794596479-4237.mp3', 'https://assets.yoolife.com.vn/yootek/1794794612891-2249.mp3', 'https://assets.yoolife.com.vn/yootek/1794794617678-9321.mp3', 'https://assets.yoolife.com.vn/yootek/1794794621511-4850.mp3'], qa:'https://assets.yoolife.com.vn/yootek/1794794600469-4315.mp3', oka:'https://assets.yoolife.com.vn/yootek/1794794604484-8881.mp3', noa:'https://assets.yoolife.com.vn/yootek/1794794608487-9349.mp3',
+    cands:[{type:'v',at:50},{type:'h',at:28},{type:'h',at:51.5,ok:true}],
+    cues:[[0,'Một mặt hồ phẳng lặng như tấm gương khổng lồ.'],
+          [4.6,'Núi tuyết, rừng cây và bầu trời in bóng xuống mặt nước.'],
+          [9.2,'Phần trên và phần dưới bức ảnh có điều gì đặc biệt?'],
+          [14.7,'Lần này, đường gấp nằm ngang – ngay tại mép nước.'],
+          [18.5,'Phần cảnh vật và bóng của nó chồng khít lên nhau.'],
+          [22.6,'Trục đối xứng không nhất thiết phải thẳng đứng!']],
+    q:'Đường gấp nào giúp phần cảnh vật và phần bóng dưới nước chồng khít lên nhau?',
+    okMsg:'Tuyệt! Đường mép nước nằm ngang chia ảnh thành hai phần giống nhau như soi gương.',
+    noMsg:'Chưa đúng. Hãy tìm đường ngăn cách cảnh vật thật và bóng của nó dưới nước.' },
+  { name:'Tháp Eiffel', place:'Paris, nước Pháp',
+    src:'https://assets.yoolife.com.vn/yootek/1794792274883-6577.jpg', W:1280, H:2128,
+    axis:{type:'v',at:49.2}, cp:13.0, dur:25.7,
+    aud:['https://assets.yoolife.com.vn/yootek/1794795786673-5258.mp3', 'https://assets.yoolife.com.vn/yootek/1794795791720-9519.mp3', 'https://assets.yoolife.com.vn/yootek/1794795797393-6856.mp3', 'https://assets.yoolife.com.vn/yootek/1794795820624-3878.mp3', 'https://assets.yoolife.com.vn/yootek/1794795825056-5401.mp3', 'https://assets.yoolife.com.vn/yootek/1794795831009-9822.mp3'], qa:'https://assets.yoolife.com.vn/yootek/1794795810388-2441.mp3', oka:'https://assets.yoolife.com.vn/yootek/1794795810388-2441.mp3', noa:'https://assets.yoolife.com.vn/yootek/1794795815595-8997.mp3',
+    cands:[{type:'h',at:62},{type:'v',at:49.2,ok:true},{type:'v',at:70}],
+    cues:[[0,'Tháp Eiffel – công trình nổi tiếng nhất nước Pháp.'],
+          [4.3,'Bốn chân tháp vươn lên, khép dần về đỉnh nhọn.'],
+          [8.9,'Em có tìm được đường gấp bí mật của tháp không?'],
+          [13.2,'Gấp theo đường thẳng đứng đi qua đỉnh tháp…'],
+          [17.0,'…hai nửa của tháp trùng khít lên nhau.'],
+          [19.8,'Nhờ đối xứng, công trình trông cân đối, vững chãi và đẹp mắt.']],
+    q:'Đường thẳng nào chia tháp Eiffel thành hai nửa chồng khít lên nhau?',
+    okMsg:'Đúng rồi! Đường thẳng đứng đi qua đỉnh tháp là đường gấp cần tìm.',
+    noMsg:'Chưa đúng. Gấp theo đường này hai phần không trùng nhau. Thử lại nhé!' }
+];
+const ACTS = [...SCENES.map(s=>({name:s.name})), {name:'Em khám phá được gì?'}];
+const L = ['a','b','c','d'];
+
+/* ============ trạng thái chung ============ */
+let cur=0, unlocked=DEV?ACTS.length-1:0; const finished=new Set();
+let narr=false;
+const AU=new Audio(); let auEnd=null;
+AU.onended=()=>{ const f=auEnd; auEnd=null; f&&f(); };
+const playA=(u,onend)=>{ AU.pause(); auEnd=onend||null; AU.src=u; AU.currentTime=0; AU.play().catch(()=>{ if(onend){auEnd=null;setTimeout(onend,1500);} }); };
+const stopA=()=>{ auEnd=null; AU.pause(); };
+const S5=['https://assets.yoolife.com.vn/yootek/1794794660889-8423.mp3', 'https://assets.yoolife.com.vn/yootek/1794794665015-3974.mp3', 'https://assets.yoolife.com.vn/yootek/1794794669228-5515.mp3', 'https://assets.yoolife.com.vn/yootek/1794794673322-5579.mp3', 'https://assets.yoolife.com.vn/yootek/1794794677392-3087.mp3'];
+const speak = t => { if(!narr||!('speechSynthesis' in window)) return; speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t); u.lang='vi-VN'; u.rate=.95;
+  const v=speechSynthesis.getVoices().find(v=>/^vi/i.test(v.lang)); if(v) u.voice=v; speechSynthesis.speak(u); };
+
+/* ============ trình phát ============ */
+let P=null; // {s,t,max,playing,cpDone,raf,last,subIdx}
+const fmt=t=>`0:${String(Math.floor(t)).padStart(2,'0')}`;
+
+function buildPlayer(s){
+  const V=$('#vis');
+  const lineEl=(c,cls)=> c.type==='v'
+    ? `<line class="${cls}" x1="${c.at}" y1="-2" x2="${c.at}" y2="102"/>`
+    : `<line class="${cls}" x1="-2" y1="${c.at}" x2="102" y2="${c.at}"/>`;
+  V.innerHTML=`<div class="player">
+    <div class="screen" id="screen">
+      <div class="pic" id="pic">
+        <img src="${s.src}" alt="${s.name}">
+        <div class="fold" id="fold" style="background-image:url('${s.src}')"></div>
+        <svg class="ov" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <g id="cands" class="hide">${s.cands.map((c,i)=>`<g class="cand" data-i="${i}">${lineEl(c,'vis')}${lineEl(c,'hit')}</g>`).join('')}</g>
+          <g id="axis" class="hide">${lineEl(s.axis,'axis')}</g>
+        </svg>
+        <div id="clabs" class="hide">${s.cands.map((c,i)=>`<span class="clab" data-i="${i}" style="${c.type==='v'?`left:${c.at}%;top:90%`:`left:8%;top:${c.at}%`}">${L[i]}</span>`).join('')}</div>
+        <span id="axlab" class="axlab hide" style="${s.axis.type==='v'?`left:${s.axis.at}%;top:5%`:`left:88%;top:${s.axis.at}%`}">trục đối xứng</span>
+      </div>
+      <div class="ask hide" id="ask">⏸ Chạm vào đường gấp đúng trên hình</div>
+      <div class="sub" id="sub"></div>
+      <button class="bigplay" id="bigplay" aria-label="Phát">▶</button>
+    </div>
+    <div class="ctrl">
+      <button id="pp" aria-label="Phát/Tạm dừng">▶</button>
+      <button id="rw" aria-label="Xem lại">↺</button>
+      <div class="bar" id="bar"><div class="seen" id="seen"></div><div class="fill" id="fill"></div><span class="mk" id="mk" style="left:${s.cp/s.dur*100}%"></span></div>
+      <span class="time" id="time">0:00 / ${fmt(s.dur)}</span>
+    </div></div>`;
+  // vùng gấp: lấy nửa trái (dọc) hoặc nửa trên (ngang) rồi lật qua trục
+  const f=$('#fold'), a=s.axis.at;
+  if(s.axis.type==='v'){ f.style.clipPath=`inset(0 ${100-a}% 0 0)`; f.style.transformOrigin=`${a}% 50%`; f.style.setProperty('--fold','rotateY(-180deg)'); }
+  else { f.style.clipPath=`inset(0 0 ${100-a}% 0)`; f.style.transformOrigin=`50% ${a}%`; f.style.setProperty('--fold','rotateX(180deg)'); }
+  fit();
+  $('#bigplay').onclick=()=>play(); $('#pp').onclick=()=>P.playing?pause():play();
+  $('#rw').onclick=()=>{ seek(0); play(); };
+  $('#bar').onclick=e=>{ const r=e.currentTarget.getBoundingClientRect(); seek((e.clientX-r.left)/r.width*s.dur); };
+  $$('.cand,.clab').forEach(el=>el.onclick=()=>answer(+el.dataset.i));
+}
+function fit(){
+  if(!P) return; const sc=$('#screen'), pic=$('#pic'); if(!sc) return;
+  const bw=sc.clientWidth-24, bh=sc.clientHeight-24, k=Math.min(bw/P.s.W, bh/P.s.H);
+  pic.style.width=P.s.W*k+'px'; pic.style.height=P.s.H*k+'px';
+}
+function fitGal(){
+  $$('.gw').forEach(g=>{ const f=g.parentElement, bw=f.clientWidth-16, bh=f.clientHeight-50, k=Math.min(bw/g.dataset.w, bh/g.dataset.h);
+    g.style.width=g.dataset.w*k+'px'; g.style.height=g.dataset.h*k+'px'; });
+}
+addEventListener('resize',()=>{ fit(); fitGal(); });
+
+function startScene(i){
+  if(P) cancelAnimationFrame(P.raf);
+  const s=SCENES[i];
+  P={s,i,t:0,max:0,playing:false,cpDone:finished.has(i),subIdx:-1,raf:0,last:0,folded:false};
+  buildPlayer(s); render();
+}
+function play(){
+  if(!P.cpDone && P.t>=P.s.cp) return openCP();
+  if(P.t>=P.s.dur) seek(0);
+  P.playing=true; P.last=performance.now(); $('#bigplay').classList.add('hide'); $('#pp').textContent='❚❚';
+  $('#pic').style.transform='scale(1.06)';
+  if(AU.src&&!AU.ended&&AU.currentTime>0&&AU.paused) AU.play().catch(()=>{});
+  P.raf=requestAnimationFrame(tick);
+}
+function pause(){ P.playing=false; AU.pause(); cancelAnimationFrame(P.raf); $('#pp').textContent='▶'; $('#pic').style.transform=getComputedStyle($('#pic')).transform; }
+function tick(now){
+  if(!P||!P.playing) return;
+  P.t+= (now-P.last)/1000; P.last=now;
+  if(!P.cpDone && P.t>=P.s.cp){ P.t=P.s.cp; render(); pause(); openCP(); return; }
+  if(P.cpDone && !P.folded && P.t>=P.s.cp){ doFold(); }
+  if(P.t>=P.s.dur){ P.t=P.s.dur; render(); pause(); endScene(); return; }
+  render(); P.raf=requestAnimationFrame(tick);
+}
+function seek(t){
+  const lim=P.cpDone?P.s.dur:P.s.cp; P.t=Math.max(0,Math.min(t,lim));
+  if(P.t<P.s.cp){ P.folded=false; $('#axis').classList.add('hide'); $('#axlab').classList.add('hide'); $('#fold').classList.remove('run'); }
+  else if(P.cpDone){ $('#axis').classList.remove('hide'); $('#axlab').classList.remove('hide'); P.folded=true; }
+  P.subIdx=-1; render();
+}
+function render(){
+  const s=P.s; P.max=Math.max(P.max,P.t);
+  $('#fill').style.width=P.t/s.dur*100+'%'; $('#seen').style.width=P.max/s.dur*100+'%';
+  $('#time').textContent=`${fmt(P.t)} / ${fmt(s.dur)}`; $('#mk').classList.toggle('done',P.cpDone);
+  let k=-1; s.cues.forEach((c,j)=>{ if(P.t>=c[0]) k=j; });
+  if(k!==P.subIdx){ $('#sub').textContent=k>=0?s.cues[k][1]:''; if(P.playing){ P.subIdx=k; if(k>=0) playA(s.aud[k]); } }
+}
+function doFold(){
+  P.folded=true; const f=$('#fold'); f.classList.remove('run'); void f.offsetWidth; f.classList.add('run');
+  $('#axis').classList.remove('hide'); $('#axlab').classList.remove('hide');
+  const ax=$('#axis line'); ax.classList.remove('draw'); void ax.getBoundingClientRect(); ax.classList.add('draw');
+  setCheck(3);
+}
+
+/* ============ điểm dừng tương tác ============ */
+function openCP(){
+  setCheck(1); $('#bigplay').classList.add('hide');
+  $('#cands').classList.remove('hide'); $('#clabs').classList.remove('hide'); $('#ask').classList.remove('hide');
+  $('#sub').textContent=''; playA(P.s.qa);
+  const host=$('#cp'); host.classList.remove('hide'); host.classList.add('card-in');
+  host.innerHTML=`<span class="chip">⏸ Dừng lại suy nghĩ</span><p>${P.s.q}</p>
+    <div class="opts">${P.s.cands.map((c,i)=>`<button class="opt" data-i="${i}"><i>${L[i]}</i><span>Đường ${L[i]} (${c.type==='v'?'thẳng đứng':'nằm ngang'})</span></button>`).join('')}</div>
+    <div class="fb" id="cpfb"></div>`;
+  $$('.opt',host).forEach(b=>b.onclick=()=>answer(+b.dataset.i));
+  host.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function answer(i){
+  if(!P||P.cpDone||$('#cands').classList.contains('hide')) return;
+  const c=P.s.cands[i], fb=$('#cpfb'), b=$(`#cp .opt[data-i="${i}"]`), g=$(`.cand[data-i="${i}"]`);
+  if(c.ok){
+    b.classList.add('ok'); $$('#cp .opt').forEach(o=>o.disabled=true);
+    fb.className='fb show ok'; fb.innerHTML=P.s.okMsg;
+    P.cpDone=true; setCheck(2);
+    $('#cands').classList.add('hide'); $('#clabs').classList.add('hide'); $('#ask').classList.add('hide');
+    const sc=P.s; playA(sc.oka,()=>{ if(P&&P.s===sc){ doFold(); play(); } });
+  } else {
+    b.classList.add('no'); b.disabled=true; g.classList.add('no');
+    fb.className='fb show no'; fb.innerHTML=P.s.noMsg; playA(P.s.noa);
+  }
+}
+function endScene(){
+  $('#bigplay').classList.remove('hide'); $('#bigplay').textContent='↺';
+  completeStep();
+}
+
+/* ============ bảng bài học ============ */
+function setCheck(n){ for(let k=1;k<=n;k++) $('#k'+k)?.classList.add('done'); }
+function sceneLesson(i){
+  const s=SCENES[i];
+  $('#sidebody').innerHTML=`<section class="sec">
+    <p class="eyebrow">Cảnh ${i+1}/3 · ${s.place}</p><h2>${s.name}</h2>
+    ${i>0?`<button class="qbtn alt" style="margin:0 0 10px" onclick="go(${i-1})">← Xem lại cảnh trước</button>`:''}
+    <div class="checks"><div class="check" id="k1"><b>✓</b>Xem video</div><div class="check" id="k2"><b>✓</b>Tìm đường gấp</div><div class="check" id="k3"><b>✓</b>Quan sát gấp hình</div></div>
+    <div class="card hide" id="cp"></div>
+    <div id="nextw"></div></section>`;
+  if(finished.has(i)){ setCheck(3); }
+}
+function summary(){
+  $('#vis').innerHTML=`<div class="gal">${SCENES.map((s,i)=>{
+    const ax=s.axis.type==='v'?`left:calc(${s.axis.at}% - 2px);top:0;bottom:0;width:4px`:`top:calc(${s.axis.at}% - 2px);left:0;right:0;height:4px`;
+    return `<figure style="animation-delay:${i*.15}s"><div class="gw" data-w="${s.W}" data-h="${s.H}"><img src="${s.src}" alt="${s.name}"><span class="gx" style="${ax}"></span></div><figcaption>${s.name}</figcaption></figure>`;}).join('')}</div>`;
+  fitGal();
+  playA(S5[0],()=>playA(S5[1],()=>playA(S5[2])));
+  $('#sidebody').innerHTML=`<section class="sec">
+    <p class="eyebrow">Tổng kết phần mở đầu</p><h2>Toán học ở quanh ta</h2>
+    <div class="kcard"><div class="kh"><span class="dot"></span>Em nhận ra</div>
+      <p>Những hình như vậy gọi là <span class="kwd">hình có trục đối xứng</span>; đường thẳng dùng để gấp gọi là <span class="kwd">trục đối xứng</span> của hình. Trục đối xứng có thể <b>thẳng đứng</b> (Khuê Văn Các, tháp Eiffel) hoặc <b>nằm ngang</b> (mặt hồ).</p></div>
+    <div class="card card-in" id="fq"></div>
+    <div id="nextw"></div></section>`;
+  const opts=['Trục đối xứng của hình','Đường chéo của hình','Cạnh của hình'];
+  const host=$('#fq');
+  host.innerHTML=`<span class="chip">Câu hỏi nhanh</span><p>Đường thẳng mà khi gấp hình theo nó, hai phần của hình chồng khít lên nhau được gọi là gì?</p>
+    <div class="opts">${opts.map((o,i)=>`<button class="opt" data-i="${i}"><i>${'ABC'[i]}</i><span>${o}</span></button>`).join('')}</div><div class="fb"></div>`;
+  $$('.opt',host).forEach(b=>b.onclick=()=>{ const ok=b.dataset.i==='0', fb=$('.fb',host);
+    if(ok){ b.classList.add('ok'); $$('.opt',host).forEach(o=>o.disabled=true); fb.className='fb show ok';
+      fb.innerHTML='Đúng rồi! Hình học không hề nhàm chán – nó ở ngay trong những công trình và cảnh đẹp quanh ta. Cùng vào bài học để tìm hiểu kĩ hơn nhé!'; playA(S5[3]); completeStep(true); }
+    else { b.classList.add('no'); b.disabled=true; fb.className='fb show no'; fb.innerHTML='Chưa đúng. Nhớ lại đường gấp màu vàng trong video nhé!'; playA(S5[4]); } });
+}
+
+/* ============ điều hướng bước ============ */
+function completeStep(last){
+  finished.add(cur); if(cur<ACTS.length-1) unlocked=Math.max(unlocked,cur+1);
+  drawSteps();
+  if(!last && cur<ACTS.length-1){
+    $('#nextw').innerHTML=`<div class="next-wrap"><button class="qbtn next-btn" type="button">Tiếp tục: ${ACTS[cur+1].name} →</button></div>`;
+    $('#nextw button').onclick=()=>go(cur+1); $('#btnNext').classList.add('nudge');
+  }
+}
+function drawSteps(){
+  $('#steps').innerHTML=ACTS.map((a,i)=>`<button class="step ${finished.has(i)?'done':''}" role="tab" data-i="${i}" aria-pressed="${i===cur}" ${i>unlocked?'disabled':''}><b>${i+1}</b><span>${a.name}</span></button>`).join('');
+  $$('.step').forEach(b=>b.onclick=()=>go(+b.dataset.i));
+  $('#btnPrev').disabled=cur===0; $('#btnNext').disabled=cur>=unlocked||cur===ACTS.length-1;
+}
+function go(i){
+  if(i<0||i>unlocked||i>=ACTS.length) return;
+  stopA();
+  if(P){ cancelAnimationFrame(P.raf); P=null; }
+  cur=i; $('#btnNext').classList.remove('nudge'); drawSteps();
+  if(i<SCENES.length){ sceneLesson(i); startScene(i); if(finished.has(i)) completeStep(); else if(i>0) play(); }
+  else summary();
+}
+$('#btnPrev').onclick=()=>go(cur-1); $('#btnNext').onclick=()=>go(cur+1);
+$('#btnFull').onclick=()=>{ document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.(); };
+$('#btnExplore').onclick=()=>{ $('#intro').classList.add('gone'); go(0); };
+drawSteps();
+</script>
+</body>
+</html>

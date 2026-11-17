@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Toán 6 | Menu bài học</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:32px 16px;font-family:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff;background:linear-gradient(180deg,#0e1218 0%,#2b3340 35%,#6b7380 100%) fixed}
+.menu{width:100%;max-width:440px;padding:14px;border-radius:22px;background:linear-gradient(180deg,rgba(14,18,24,.85),rgba(80,88,100,.7));border:1px solid rgba(255,255,255,.18);display:flex;flex-direction:column;gap:14px;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.item,.group>summary{display:flex;align-items:center;gap:10px;padding:18px 22px;border-radius:99px;background:rgba(255,255,255,.2);color:#fff;text-decoration:none;font-size:1.25rem;font-weight:700;text-transform:uppercase;cursor:pointer;list-style:none;border:0;width:100%;font-family:inherit;text-align:left}
+.item:hover,.group>summary:hover{background:rgba(255,255,255,.3)}
+.item.off{opacity:.55;cursor:not-allowed}
+.group>summary::-webkit-details-marker{display:none}
+.group>summary::before{content:"›";display:inline-block;transition:transform .2s;font-size:1.5rem;line-height:1}
+.group[open]>summary{background:none;padding:12px 8px 8px;border-radius:0}
+.group[open]>summary::before{transform:rotate(90deg)}
+.group[open]{background:rgba(255,255,255,.22);border-radius:22px;padding:6px 10px 10px}
+.sub{display:flex;flex-direction:column}
+.sub a{display:flex;align-items:center;gap:14px;padding:18px 14px;color:#fff;text-decoration:none;font-size:1.2rem;border-top:1px solid rgba(255,255,255,.25)}
+.sub a:first-child{border-top:0}
+.sub a:hover{background:rgba(255,255,255,.12);border-radius:12px}
+.sub a::before{content:"✦";font-size:1.3rem}
+.tag{font-size:.75rem;font-weight:500;text-transform:none;opacity:.8;margin-left:auto}
+</style>
+</head>
+<body>
+<div class="menu">
+<a class="item" href="0.%20Kh%E1%BB%9Fi%20%C4%91%E1%BB%99ng/1.%20H%C3%ACnh%20c%C3%B3%20tr%E1%BB%A5c%20%C4%91%E1%BB%91i%20x%E1%BB%A9ng%20-%20Video%20m%E1%BB%9F%20%C4%91%E1%BA%A7u.html" target="_blank" rel="noopener">I. Khởi động</a>
+<details class="group" open>
+<summary>II. Hình thành kiến thức</summary>
+<div class="sub">
+<a href="1.%20H%C3%ACnh%20c%C3%B3%20tr%E1%BB%A5c%20%C4%91%E1%BB%91i%20x%E1%BB%A9ng%20trong%20th%E1%BB%B1c%20t%E1%BA%BF/1.%20H%C3%ACnh%20c%C3%B3%20tr%E1%BB%A5c%20%C4%91%E1%BB%91i%20x%E1%BB%A9ng%20trong%20th%E1%BB%B1c%20t%E1%BA%BF%20-%20B%C3%A0i%20gi%E1%BA%A3ng%203D.html" target="_blank" rel="noopener">2.1. Hình có trục đối xứng trong thực tế</a>
+<a href="2.%20Tr%E1%BB%A5c%20%C4%91%E1%BB%91i%20x%E1%BB%A9ng%20c%E1%BB%A7a%20m%E1%BB%99t%20s%E1%BB%91%20h%C3%ACnh%20ph%E1%BA%B3ng/2.%20Tr%E1%BB%A5c%20%C4%91%E1%BB%91i%20x%E1%BB%A9ng%20c%E1%BB%A7a%20m%E1%BB%99t%20s%E1%BB%91%20h%C3%ACnh%20ph%E1%BA%B3ng%20-%20B%C3%A0i%20gi%E1%BA%A3ng%203D.html" target="_blank" rel="noopener">2.2. Trục đối xứng của một số hình phẳng</a>
+</div>
+</details>
+<a class="item" href="3.%20Luy%E1%BB%87n%20t%E1%BA%ADp/3.%20Luy%E1%BB%87n%20t%E1%BA%ADp%20-%20B%C3%A0i%20gi%E1%BA%A3ng%203D.html" target="_blank" rel="noopener">III. Luyện tập</a>
+<a class="item" href="https://drive.google.com/file/d/1OMm5IrbeW0o5CmQBFIdUWFCW4kO6Vl-0/view?usp=sharing" target="_blank" rel="noopener">IV. Mở rộng</a>
+</div>
+</body>
+</html>

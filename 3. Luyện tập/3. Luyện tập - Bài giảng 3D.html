@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>Luyện tập | YooBook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<script type="importmap">{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}</script>
+<style>
+:root{
+  --brand:#195856; --brand-dark:#0f3f3d; --brand-light:#2f827d; --brand-soft:#e6f0ee;
+  --ink:#10302d; --muted:#5f8b89; --line:#dbe8e5; --stage-mid:#f1f9f7; --stage-bottom:#dcebe7;
+  --ok:#6fa85b; --bad:#c96a4f; --gold:#ffcf5a; --red:#d6382f;
+  --r:16px; --r-sm:11px;
+  --sh-1:0 1px 2px rgba(13,42,40,.05);
+  --sh-2:0 2px 6px rgba(13,42,40,.06),0 18px 34px -22px rgba(13,42,40,.45);
+  --sh-3:0 10px 30px -12px rgba(13,42,40,.32);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:'Roboto',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.5;color:var(--ink);background:#195658;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit}
+.app{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line);box-shadow:var(--sh-1);z-index:20;flex:0 0 auto}
+.logoclip{height:27px;display:flex;align-items:center;flex:0 0 auto}
+.logo{height:27px;display:block}
+.titles{flex:1;min-width:0}
+.badge{display:inline-block;max-width:100%;font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--brand);background:var(--brand-soft);border-radius:99px;padding:2px 9px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
+.titles h1{margin:0;font-weight:700;font-size:18px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-btn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--brand-dark)}
+.tb-btn:hover{background:var(--brand-soft);border-color:var(--brand-light)}
+.main{flex:1;min-height:0;display:flex;flex-direction:column;padding:14px;overflow:hidden}
+.frame{background:#fff;border-radius:var(--r);box-shadow:var(--sh-2);display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.stage{position:relative;flex:1;min-height:0;background:radial-gradient(75% 80% at 32% 45%,#23706d 0%,#195658 55%,#123f3e 100%);overflow:hidden}
+.vignette{position:absolute;inset:0;z-index:1;pointer-events:none;box-shadow:inset 0 0 90px rgba(15,63,61,.10)}
+.stage-tools{position:absolute;left:62px;top:12px;z-index:6;display:flex;gap:8px;flex-wrap:wrap}
+.ghost{background:rgba(255,255,255,.90);backdrop-filter:blur(8px) saturate(1.3);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 11px;font-size:12.5px;font-weight:500;color:var(--brand-dark);cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:var(--sh-1)}
+.ghost[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}
+.stage-nav{position:absolute;top:50%;z-index:30;transform:translateY(-50%);width:38px;height:38px;border-radius:99px;border:1px solid var(--line);background:rgba(255,255,255,.88);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--brand-dark);box-shadow:var(--sh-1);font-size:16px}
+.stage-nav.prev{left:12px}.stage-nav.next{right:12px}
+.stage-nav[disabled]{opacity:.3;pointer-events:none}
+.stage-nav.nudge{animation:nudgePulse 1.2s ease infinite}
+@keyframes nudgePulse{0%,100%{box-shadow:0 0 0 0 rgba(255,207,90,.8)}50%{box-shadow:0 0 0 10px rgba(255,207,90,0)}}
+
+/* vùng 3D (bên trái) + bảng bài học (bên phải) */
+.view{position:absolute;z-index:2;left:0;top:0;bottom:0;right:calc(min(500px,44%) + 60px);touch-action:none;cursor:grab}
+.view:active{cursor:grabbing}
+.view canvas{display:block;width:100%!important;height:100%!important}
+.lesson{position:absolute;z-index:7;right:60px;top:12px;bottom:12px;width:min(500px,44%);display:flex;flex-direction:column;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-radius:var(--r);box-shadow:var(--sh-3);overflow:hidden}
+.sidebody{flex:1;min-height:0;overflow:auto;padding:18px 20px 16px;background:linear-gradient(#fff,var(--stage-mid) 70%,var(--stage-bottom))}
+.sec{animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.chip{display:inline-block;font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-soft);border-radius:99px;padding:3px 11px;margin-bottom:6px}
+.sec h2{margin:0 0 10px;font-size:22px;line-height:1.3;color:var(--brand-dark)}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-1);padding:14px 16px;margin:12px 0}
+.card p{font-size:16px;line-height:1.6;margin:0}
+.card p+p{margin-top:8px}
+.kcard{border-radius:var(--r-sm);padding:12px 14px;margin-top:12px;border:1.5px solid var(--brand-light);background:#fff;box-shadow:var(--sh-1);animation:fade .35s ease}
+.kcard .kh{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--brand);border-radius:99px;padding:4px 12px 4px 9px;margin-bottom:8px}
+.kcard .kh::before{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+.kcard p,.kcard li{margin:0;font-size:16px;line-height:1.6}
+.kcard ul{margin:0;padding-left:20px}
+.kcard li+li{margin-top:4px}
+.red{color:var(--red);font-weight:700}
+.kwd{font-weight:700;color:var(--brand-light)}
+.nar{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-left:4px solid var(--brand-light);border-radius:var(--r-sm);padding:10px 12px;margin:0 0 12px;box-shadow:var(--sh-1)}
+.nar .av{flex:0 0 30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+.nar .tx{font-size:16px;line-height:1.6}
+.opts{display:flex;flex-direction:column;gap:8px;margin:10px 0 0}
+.opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;padding:11px 13px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:16px;cursor:pointer}
+.opt i{font-style:normal;flex:0 0 24px;height:24px;border-radius:50%;background:var(--brand-soft);color:var(--brand);font-weight:700;font-size:12.5px;display:flex;align-items:center;justify-content:center}
+.opt:hover:not(:disabled){border-color:var(--brand-light);background:var(--stage-mid)}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-dark);font-weight:600}
+.opt.ok i{background:var(--brand);color:#fff}
+.opt.no{border-color:var(--bad);background:#fbeae4;color:#a54527}
+.opt.no i{background:var(--bad);color:#fff}
+.fb{display:none;margin:10px 0 0;padding:10px 13px;border-radius:var(--r-sm);font-size:15.5px;line-height:1.6}
+.fb.show{display:block;animation:fade .25s ease}
+.fb.ok{background:var(--brand-soft);color:var(--brand-dark)}
+.fb.no{background:#fbeae4;color:#a54527}
+.fb.infobtn{background:#fff6dd;color:#6b4d13}
+.qbtn{border:0;border-radius:11px;padding:11px 20px;font-size:15.5px;font-weight:600;cursor:pointer;background:var(--brand);color:#fff;margin:10px 8px 0 0}
+.qbtn:hover:not(:disabled){background:var(--brand-dark)}
+.qbtn:disabled{opacity:.45;cursor:not-allowed}
+.next-wrap{margin:16px 0 4px;display:flex;justify-content:flex-end}
+.next-btn{margin:0;padding:12px 22px;animation:nudgePulse 1.4s ease .5s infinite}
+.hint{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+/* tab con HĐ1–HĐ3 */
+.subtabs{display:flex;gap:8px;margin:0 0 14px}
+.subtab{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:11px;background:#fff;color:var(--brand-dark);font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;box-shadow:var(--sh-1);transition:background .15s,border-color .15s,transform .1s}
+.subtab:hover:not(.on){border-color:var(--brand-light);background:var(--stage-mid);transform:translateY(-1px)}
+.subtab:active{transform:translateY(1px)}
+.subtab.lt{font-size:19px;font-weight:800;color:#2a9fe0;padding:6px 4px}
+.subtab.lt.on{color:#fff}
+.tiles.gal{grid-template-columns:repeat(5,1fr)}
+.tile.cap{aspect-ratio:auto;flex-direction:column;gap:4px;padding:8px 4px 6px}
+.tile.cap img{width:100%;height:auto;aspect-ratio:1}
+.tile .cp{font-size:11.5px;font-weight:600;line-height:1.25;color:var(--brand-dark);text-align:center}
+.tile.view{box-shadow:0 0 0 3px var(--gold)}
+.tile .iw{position:relative;display:block;width:100%}
+.tile .iw img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain}
+.tile.showax .iw::after{content:'';position:absolute;left:50%;top:2%;bottom:2%;margin-left:-1.5px;border-left:3px dashed #e9a800}
+/* bước gallery: chiếm toàn bộ khung */
+.stage.full .view,.stage.full .dock,.stage.full .verdict,.stage.full .stage-hint,.stage.full .stage-tools{display:none!important}
+.stage.full .lesson{left:60px;right:60px;width:auto}
+.stage.full .lesson{background:transparent;box-shadow:none;backdrop-filter:none} /* bỏ khung trắng ngoài cùng */
+.stage.full .sidebody{background:transparent;padding-top:6px}
+.stage.full .sec>h2{color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.25)}
+.stage.full .sec>.card:first-of-type{margin-top:6px}
+.stage.full .tiles.gal{grid-template-columns:repeat(5,1fr);gap:14px}
+.stage.full .tile.cap{padding:12px 10px 10px;gap:8px}
+/* gallery giãn hết chiều cao khung: 2 hàng thẻ chia đều phần trống */
+.stage.full .sidebody{display:flex;flex-direction:column}
+.stage.full .sec{flex:1 0 auto;display:flex;flex-direction:column}
+.stage.full .sec>.card:first-of-type{flex:1 0 auto;display:flex;flex-direction:column;min-height:400px;margin-bottom:0}
+.stage.full .tiles.gal{flex:1;grid-template-rows:repeat(2,minmax(0,1fr))}
+.stage.full .sec>.card:first-of-type>.qbtn{align-self:flex-start}
+.stage.full .tile.cap{justify-content:center;min-height:0}
+.stage.full .tile .iw{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+.stage.full .tile .iw img{width:auto;height:100%;max-width:100%;aspect-ratio:1}
+.stage.full .tile .cp{font-size:18px;font-weight:700}
+.stage.full .sec>h2{font-size:26px}
+.stage.full .card p{font-size:18px}
+.stage.full .card .hint{font-size:16px}
+.tile.sel.view{box-shadow:0 0 0 3px var(--gold),0 0 0 6px rgba(25,88,86,.15)}
+.subtab.sg{padding:5px 6px}
+.subtab.sg img{width:38px;height:38px;flex:0 0 38px}
+.subtab.sg span{font-size:14px}
+.subtab span{overflow:hidden;text-overflow:ellipsis}
+.subtab b{flex:0 0 20px;height:20px;border-radius:50%;background:var(--brand-soft);color:var(--brand);font-size:11px;display:flex;align-items:center;justify-content:center}
+.subtab.on{background:var(--brand);border-color:var(--brand-dark);color:#fff;box-shadow:0 4px 10px -4px rgba(15,63,61,.5)}
+.subtab.on b{background:rgba(255,255,255,.25);color:#fff}
+.subtab.done:not(.on) b{background:var(--brand);color:#fff}
+.subtab.locked{opacity:.45;cursor:not-allowed}
+/* ô chọn (chữ cái / biển báo) */
+.tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:10px}
+.tiles.t4{grid-template-columns:repeat(4,1fr)}
+.tile{position:relative;aspect-ratio:1;border-radius:12px;border:2px solid var(--line);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px}
+.tile img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.tile .tl{position:absolute;left:4px;bottom:2px;font-size:11px;font-weight:700;color:var(--muted)}
+.tile.sel{border-color:var(--brand);background:var(--brand-soft);box-shadow:0 0 0 3px rgba(25,88,86,.15)}
+.tile.sel::after{content:'✓';position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.tile.right{border-color:var(--ok);background:#eef7ea}
+.tile.wrong{border-color:var(--bad);background:#fbeae4;animation:shake .4s}
+.tile:disabled{cursor:default}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+/* điền khuyết */
+.blank{display:inline-block;min-width:92px;border-bottom:2px dashed var(--brand-light);padding:0 6px;margin:0 2px;text-align:center;color:var(--muted);font-weight:600}
+.blank.cur{border-bottom-color:var(--gold);background:#fff6dd;border-radius:6px 6px 0 0}
+.blank.filled{border-bottom:2px solid var(--brand);color:var(--red);font-weight:700}
+.bank{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.wchip{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font-size:15px;cursor:pointer;color:var(--brand-dark);font-weight:500}
+.wchip:hover:not(:disabled){border-color:var(--brand-light);background:var(--stage-mid)}
+.wchip.no{border-color:var(--bad);background:#fbeae4;animation:shake .4s}
+.wchip:disabled{opacity:.35;cursor:default}
+/* câu hỏi số trục */
+.cntq{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;border-radius:var(--r-sm);background:#fff;border:1px solid var(--line)}
+.cntq .lbl{flex:1 1 180px;font-size:15.5px;font-weight:600}
+.cntq .nb{width:52px;height:52px;font-size:20px!important;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:16px;font-weight:700;color:var(--brand-dark);cursor:pointer}
+.cntq .nb.ok{background:var(--brand);border-color:var(--brand);color:#fff}
+.cntq .nb.no{background:#fbeae4;border-color:var(--bad);color:#a54527;animation:shake .4s}
+.cntq.done .lbl::after{content:' ✔';color:var(--ok)}
+/* sắp xếp ví dụ */
+.sortbox{display:flex;gap:8px;margin-top:10px}
+.sortbox .qbtn{flex:1;margin:0}
+.sortbox .qbtn.alt{background:#fff;color:var(--brand-dark);border:1.5px solid var(--brand)}
+.prog{display:flex;gap:5px;margin:10px 0 0;flex-wrap:wrap}
+.prog span{width:22px;height:8px;border-radius:99px;background:var(--line)}
+.prog span.ok{background:var(--ok)} .prog span.no{background:var(--bad)} .prog span.cur{background:var(--gold)}
+.myex{width:100%;margin-top:8px;padding:10px 12px;border-radius:var(--r-sm);border:1.5px solid var(--line);font:inherit;font-size:15.5px;resize:vertical;min-height:64px}
+.myex:focus{outline:none;border-color:var(--brand-light)}
+.sumgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.sumgrid div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:14px;font-weight:600}
+.sumgrid b{display:block;font-size:24px;color:var(--brand)}
+
+/* thanh điều khiển 3D (dưới khung 3D) */
+.dock{position:absolute;z-index:6;left:62px;right:calc(min(500px,44%) + 72px);bottom:12px;display:none;flex-wrap:wrap;justify-content:center;gap:6px;pointer-events:none}
+.dock .grp{pointer-events:auto;display:flex;flex-wrap:wrap;align-items:center;gap:6px;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border-radius:14px;padding:6px 8px;box-shadow:var(--sh-3)}
+.dock .gl{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:0 4px}
+.dk{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:7px 12px;font-size:13.5px;font-weight:600;color:var(--brand-dark);cursor:pointer;white-space:nowrap}
+.dk:hover:not(:disabled){border-color:var(--brand-light);background:var(--stage-mid)}
+.dk.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.dk.pri{background:var(--gold);border-color:#e9b93c;color:#4a3200}
+.dk.pri:hover:not(:disabled){background:#ffd978}
+.dk:disabled{opacity:.4;cursor:not-allowed}
+.dk.found{border-color:var(--ok);color:#3f6b32;background:#eef7ea}
+.dk.miss{border-color:var(--bad);color:#a54527;background:#fbeae4}
+.dock input[type=range]{width:150px;accent-color:var(--brand)}
+.dock .val{font-size:13px;font-weight:700;color:var(--brand-dark);min-width:38px}
+.infobtn{position:relative;flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--brand-light);background:#fff;color:var(--brand);font:italic 700 14px Georgia,'Times New Roman',serif;display:flex;align-items:center;justify-content:center;cursor:help;outline:none}
+.infobtn:hover,.infobtn:focus{background:var(--brand);color:#fff;border-color:var(--brand)}
+.infobtn .tip{position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%) translateY(4px);width:min(300px,80vw);background:var(--brand-dark);color:#fff;font:400 13.5px/1.55 'Roboto',sans-serif;padding:10px 13px;border-radius:11px;box-shadow:var(--sh-3);opacity:0;visibility:hidden;transition:opacity .18s,transform .18s;pointer-events:none;text-align:left;z-index:10}
+.infobtn .tip::after{content:'';position:absolute;top:100%;left:50%;margin-left:-7px;border:7px solid transparent;border-top-color:var(--brand-dark)}
+.infobtn:hover .tip,.infobtn:focus .tip{opacity:1;visibility:visible;transform:translateX(-50%)}
+.verdict{position:absolute;z-index:6;top:58px;left:calc((100% - min(500px,44%) - 60px)/2);transform:translateX(-50%);padding:8px 16px;border-radius:99px;font-size:15px;font-weight:700;box-shadow:var(--sh-3);white-space:normal;text-align:center;width:max-content;max-width:calc(100% - min(500px,44%) - 150px);display:none;animation:fade .3s ease}
+.verdict.ok{display:block;background:#eef7ea;color:#2f5a24;border:2px solid var(--ok)}
+.verdict.no{display:block;background:#fbeae4;color:#a54527;border:2px solid var(--bad)}
+.verdict.info{display:block;background:#fff6dd;color:#6b4d13;border:2px solid var(--gold)}
+.stage-hint{position:absolute;z-index:5;left:62px;bottom:72px;background:rgba(255,255,255,.88);border-radius:99px;padding:6px 12px;font-size:12.5px;font-weight:500;color:var(--brand-dark);box-shadow:var(--sh-1);transition:opacity .6s}
+.stage-hint.hide{opacity:0;pointer-events:none}
+.toast{position:absolute;left:50%;top:14px;transform:translate(-50%,-20px);z-index:40;background:var(--brand-dark);color:#fff;padding:9px 16px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;box-shadow:var(--sh-3);white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.loading{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:linear-gradient(180deg,#fff,var(--stage-mid));text-align:center;padding:20px}
+.loading p{margin:0;color:var(--muted);font-size:13px}
+.spinner{width:34px;height:34px;border-radius:99px;border:3px solid var(--line);border-top-color:var(--brand);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.steps{display:flex;gap:8px;padding:10px 12px;overflow-x:auto;overflow-y:hidden;border-top:1px solid var(--line);scrollbar-width:none;flex:0 0 auto}
+.steps::-webkit-scrollbar{display:none}
+.step{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:7px 13px 7px 8px;border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap}
+.step b{width:20px;height:20px;border-radius:99px;background:var(--brand-soft);color:var(--brand-dark);font-size:11px;display:flex;align-items:center;justify-content:center}
+.step[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;animation:stepJump .28s ease}
+@keyframes stepJump{0%{transform:scale(.96)}70%{transform:scale(1.035)}100%{transform:scale(1)}}
+.step[aria-pressed="true"] b{background:rgba(255,255,255,.25);color:#fff}
+.step.done:not([aria-pressed="true"]) b{background:var(--brand);color:#fff}
+.step.locked{opacity:.5;cursor:not-allowed}
+.step.locked b{background:var(--line)}
+
+.intro-loader{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden;background:radial-gradient(80% 70% at 50% 40%,#2f827d 0,#195856 58%,#0b2a29 100%);transition:opacity .45s}
+.intro-loader.gone{opacity:0;pointer-events:none}
+.intro-inner{position:relative;z-index:2;width:min(760px,92vw);display:flex;flex-direction:column;align-items:center;text-align:center;color:#fff}
+.intro-kicker{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#d6e78c}
+.intro-inner h1{font-size:clamp(30px,4.6vw,50px);margin:10px 0 12px;line-height:1.14;font-weight:800;letter-spacing:-.02em;text-shadow:0 4px 18px rgba(0,0,0,.4)}
+.intro-sub{max-width:680px;margin:0 auto 30px;font-size:14.5px;line-height:1.65;color:rgba(255,255,255,.93)}
+.intro-progress{width:min(410px,72vw);height:3px;margin:0 auto 14px;border-radius:99px;background:rgba(255,255,255,.36);overflow:hidden}
+.intro-progress span{display:block;height:100%;width:8%;background:#d8ff64;box-shadow:0 0 12px rgba(216,255,100,.5);transition:width .3s linear}
+#introStatus{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.ready-dot{width:8px;height:8px;border-radius:99px;background:#d8ff64;display:inline-block;margin-right:7px;box-shadow:0 0 10px rgba(216,255,100,.65)}
+.intro-explore{margin:20px auto 0;min-width:210px;padding:12px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.34);cursor:pointer;background:rgba(25,88,86,.82);color:#fff;font-weight:700;font-size:14px;opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .28s,transform .28s,background .2s}
+.intro-loader.ready .intro-explore{opacity:1;transform:none;pointer-events:auto}
+.intro-explore:hover{background:rgba(47,130,125,.96)}
+.intro-credit{margin-top:30px;color:rgba(255,255,255,.86);font-size:12px}
+
+@media (max-width:900px){
+  .main{padding:10px}
+  .titles h1{font-size:15px}
+  .stage-nav{width:34px;height:34px;font-size:14px;top:25%}
+  .view{right:0;bottom:calc(50% + 50px)}
+  .lesson{left:8px;right:8px;top:auto;bottom:8px;width:auto;height:calc(50% - 8px)}
+  .stage-tools{left:54px;top:8px}
+  .ghost span{display:none}
+  .dock{left:8px;right:8px;bottom:calc(50% + 4px);flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none}
+  .dock::-webkit-scrollbar{display:none}
+  .dock{flex-wrap:wrap;justify-content:center;overflow:visible} /* cho khung ⓘ không bị cắt */
+  .dock .grp{flex-wrap:wrap}
+  .infobtn .tip{left:auto;right:-8px;transform:translateY(4px)}
+  .infobtn:hover .tip,.infobtn:focus .tip{transform:none}
+  .infobtn .tip::after{left:auto;right:14px}
+  .dock .grp{flex:0 0 auto;flex-wrap:nowrap;padding:4px 6px;gap:4px;border-radius:12px}
+  .dock .gl{display:none}
+  .dk{padding:5px 9px;font-size:12px}
+  .dock input[type=range]{width:100px}
+  .verdict{left:50%;top:50px;font-size:13px;max-width:calc(100% - 100px)}
+  .stage-hint{display:none}
+  .sec h2{font-size:19px}
+  .tiles{grid-template-columns:repeat(6,1fr);gap:6px}
+  .tiles.gal{grid-template-columns:repeat(4,1fr)}
+  .stage.full .lesson{left:8px;right:8px;top:8px;height:auto}
+  .stage.full .tiles.gal{grid-template-columns:repeat(3,1fr);gap:8px;grid-template-rows:none}
+  .stage.full .tile .iw{flex:none}
+  .stage.full .tile .iw img{width:100%;height:auto}
+  .stage.full .tile .cp{font-size:14px}
+  .stage.full .sec>h2{font-size:20px}
+  .stage.full .card p{font-size:16px}
+}
+/* trắc nghiệm toàn khung */
+.stage.full #qz{flex:1;display:flex;flex-direction:column}
+.stage.full #qz .card{flex:1;display:flex;flex-direction:column;justify-content:center;margin:10px 0 0;padding:28px 32px}
+.stage.full #qz .card>p{font-size:32px;line-height:1.4}
+.stage.full #qz .opts{gap:14px;margin-top:22px}
+.stage.full #qz .opt{font-size:26px;padding:18px 22px;align-items:center}
+.stage.full #qz .opt i{flex-basis:40px;height:40px;font-size:19px}
+.stage.full #qz .fb{font-size:22px}
+.stage.full .stage-nav{display:none}
+.stage.full .lesson{left:16px;right:16px}
+.stage.full #qz .next-btn{font-size:20px}
+.stage.full #r5 .kcard p{font-size:26px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <div class="logoclip"><img class="logo" alt="YooBook" src="data:image/png;base64,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"></div>
+    <div class="titles">
+      <div class="badge">Toán 6 · Hình có trục đối xứng</div>
+      <h1>Luyện tập</h1>
+    </div>
+    <button class="tb-btn" id="btnFullscreen" aria-label="Toàn màn hình" type="button">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+  </header>
+
+  <div class="main">
+    <div class="frame">
+      <div class="stage" id="stage">
+        <div class="vignette"></div>
+        <div class="view" id="view"></div>
+
+        <div class="verdict" id="verdict"></div>
+        <div class="dock" id="dock"></div>
+        <div class="stage-hint" id="stageHint">↻ Chạm và kéo để xoay mô hình</div>
+
+        <button class="stage-nav prev" id="btnPrev" type="button" aria-label="Bước trước">◀</button>
+        <button class="stage-nav next" id="btnNext" type="button" aria-label="Bước sau">▶</button>
+
+        <aside class="lesson"><div class="sidebody" id="sidebody"></div></aside>
+
+        <div class="toast" id="toast"></div>
+        <div class="loading" id="loadingEl"><div class="spinner"></div><p>Đang tải mô hình 3D…</p></div>
+      </div>
+      <div class="steps" id="stepsBar" role="tablist" aria-label="Các bước học"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const PI=Math.PI, DEG=PI/180;
+
+/* =====================================================================
+   1. Vẽ hình phẳng lên canvas (đơn vị: 1 đơn vị = K px, gốc ở giữa,
+      trục y hướng XUỐNG giống canvas; mặt phẳng 3D rộng S đơn vị)
+   ===================================================================== */
+const S=3, N=1024, K=N/S;
+function mk(draw){
+  const c=document.createElement('canvas'); c.width=c.height=N;
+  const g=c.getContext('2d'); g.setTransform(K,0,0,K,N/2,N/2);
+  g.lineJoin='round'; g.lineCap='round'; draw(g); return c;
+}
+function line(g,pts,w,col){g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.lineWidth=w;g.strokeStyle=col;g.stroke();}
+function poly(g,pts,fill,stroke,w){g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.lineWidth=w;g.strokeStyle=stroke;g.stroke();}}
+function disk(g,x,y,r,fill,stroke,w){g.beginPath();g.arc(x,y,r,0,2*PI);if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.lineWidth=w;g.strokeStyle=stroke;g.stroke();}}
+
+/* ---- 5.1: hình thang cân ---- */
+const cTrap=()=>mk(g=>poly(g,[[-0.55,-0.62],[0.55,-0.62],[1.1,0.62],[-1.1,0.62]],'#fff1a8','#b99a2e',0.035));
+/* ---- 5.2: lục giác đều ---- */
+const HEX_R=1.15;
+const cHex=()=>mk(g=>poly(g,[0,1,2,3,4,5].map(i=>[HEX_R*Math.cos(i*PI/3),HEX_R*Math.sin(i*PI/3)]),'#3fd0ff','#1b86b0',0.035));
+/* ---- 5.3: bốn hình ---- */
+function star(g,cx,cy,R,r,fill){g.beginPath();for(let i=0;i<10;i++){const a=-PI/2+i*PI/5,q=i%2?r:R;g.lineTo(cx+q*Math.cos(a),cy+q*Math.sin(a));}g.closePath();g.fillStyle=fill;g.fill();}
+const FIG53={
+  a:{name:'Lá cờ',ax:[90],draw:g=>{g.fillStyle='#e8261f';g.fillRect(-1.3,-0.87,2.6,1.74);star(g,0,0.02,0.55,0.22,'#ffe600');}},
+  b:{name:'Chữ P',ax:[],draw:g=>{g.beginPath();g.moveTo(-0.45,1.0);g.lineTo(-0.45,-0.9);g.lineTo(0.1,-0.9);g.arc(0.1,-0.4,0.5,-PI/2,PI/2);g.lineTo(-0.45,0.1);g.lineWidth=0.42;g.strokeStyle='#8a2a24';g.lineJoin='miter';g.lineCap='butt';g.stroke();}},
+  c:{name:'Cỏ ba lá',ax:[90],draw:g=>{
+    const col='#3fbf4f',cx=0,cy=-0.15;
+    poly(g,[[-0.07,0],[0.07,0],[0.2,1.15],[-0.2,1.15]],col);
+    [0,120,-120].forEach(d=>{g.save();g.translate(cx,cy);g.rotate(d*DEG);
+      disk(g,-0.24,-0.56,0.3,col);disk(g,0.24,-0.56,0.3,col);poly(g,[[-0.5,-0.45],[0.5,-0.45],[0,0.05]],col);g.restore();});
+    disk(g,cx,cy,0.2,col);}},
+  d:{name:'Biển cấm',ax:[135,45],draw:g=>{disk(g,0,0,1.12,'#fff');disk(g,0,0,1.0,null,'#e8261f',0.22);line(g,[[-0.7,-0.7],[0.7,0.7]],0.22,'#e8261f');}},
+};
+/* ---- 5.4: bốn hình trên lưới ô vuông (1 ô = 0.25) ---- */
+function arcMinor(g,cx,cy,r,p,q){const a=Math.atan2(p[1]-cy,p[0]-cx),b=Math.atan2(q[1]-cy,q[0]-cx);let d=b-a;while(d>PI)d-=2*PI;while(d<-PI)d+=2*PI;g.arc(cx,cy,r,a,b,d<0);}
+const FIG54={
+  a:{name:'Hình a',n:1,ax:[90],draw:g=>poly(g,[[-1.0,-1.0],[-0.5,-0.75],[0.5,-0.75],[1.0,-1.0],[1.0,-0.25],[0.75,0.5],[0,0.75],[-0.75,0.5],[-1.0,-0.25]],'rgba(255,236,150,.95)','#c9a83a',0.03)},
+  b:{name:'Hình b',n:2,ax:[45,135],draw:g=>{const P1=[-1,1],P2=[1,-1],r=1.7,h=Math.sqrt(r*r-2),c=h/Math.SQRT2;
+    g.beginPath();g.moveTo(...P1);arcMinor(g,c,c,r,P1,P2);arcMinor(g,-c,-c,r,P2,P1);g.closePath();g.fillStyle='rgba(255,236,150,.95)';g.fill();g.lineWidth=0.03;g.strokeStyle='#c9a83a';g.stroke();}},
+  c:{name:'Hình c',n:0,ax:[],draw:g=>{const col='rgba(120,214,170,.95)';
+    for(let i=0;i<4;i++){g.save();g.rotate(i*PI/2);poly(g,[[-0.25,-0.25],[0.25,-0.25],[0.25,-1.15]],col);g.restore();}
+    g.fillStyle=col;g.fillRect(-0.26,-0.26,0.52,0.52);}},
+  d:{name:'Hình d',n:1,ax:[0],draw:g=>{poly(g,[[-1.15,-0.25],[0.5,-0.25],[0.5,-0.6],[1.15,0],[0.5,0.6],[0.5,0.25],[-1.15,0.25]],'rgba(120,214,170,.95)','#3e9a74',0.03);}},
+};
+
+/* =====================================================================
+   2. Khung 3D (three.js)
+   ===================================================================== */
+const view=$('#view');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+view.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(38,1,0.1,100);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.enablePan=false;controls.minDistance=3;controls.maxDistance=12;controls.autoRotateSpeed=1.4;
+const CAM0={p:[1.5,0.6,6.3],t:[0,-0.05,0]};
+camera.position.set(...CAM0.p);controls.target.set(...CAM0.t);
+scene.add(new THREE.HemisphereLight(0xffffff,0x9fb9b5,2.2));
+const dl=new THREE.DirectionalLight(0xffffff,1.2);dl.position.set(2,-3,6);scene.add(dl);
+const dl2=new THREE.DirectionalLight(0xffffff,0.5);dl2.position.set(-3,3,-4);scene.add(dl2);
+// bóng mềm bên dưới
+const shadowTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');const gr=g.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(0,0,0,.35)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);})();
+const shadow=new THREE.Mesh(new THREE.PlaneGeometry(4.2,4.2),new THREE.MeshBasicMaterial({map:shadowTex,transparent:true,depthWrite:false}));
+shadow.position.z=-0.35;scene.add(shadow);
+
+function labelSprite(txt,bg,fg){
+  const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');
+  g.fillStyle=bg;g.beginPath();g.arc(64,64,54,0,2*PI);g.fill();
+  g.fillStyle=fg;g.font='italic 800 72px Roboto, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,64,68);
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false}));s.scale.set(0.3,0.3,1);s.renderOrder=10;return s;
+}
+function dashedAxis(color,opacity=1,L=1.5,label){
+  const g=new THREE.Group();
+  const mat=new THREE.MeshBasicMaterial({color,transparent:opacity<1,opacity});
+  const geo=new THREE.BoxGeometry(0.04,0.12,0.012);
+  for(let y=-L;y<=L;y+=0.2){const m=new THREE.Mesh(geo,mat);m.position.y=y;g.add(m);}
+  if(label){const s=labelSprite(label,color===0xffcf5a?'#ffcf5a':'#6fa85b','#3a2a00');s.position.set(0,L+0.22,0.05);g.add(s);g.userData.label=s;}
+  g.userData.mat=mat;g.userData.color=color;
+  return g;
+}
+
+/* ---- Bộ gấp hình: tách hình phẳng thành 2 nửa theo một đường thẳng bất kì ---- */
+const R=S*0.75, EPS=0.004;
+const F={
+  root:new THREE.Group(), hinge:new THREE.Group(), fixPivot:new THREE.Group(), movPivot:new THREE.Group(),
+  t:0, both:false, axis:{a:PI/2,px:0,py:0}, canvas:null, tex:null,
+};
+scene.add(F.root);F.root.add(F.hinge);F.hinge.add(F.fixPivot,F.movPivot);F.movPivot.position.z=EPS;
+F.matFix=new THREE.MeshStandardMaterial({transparent:true,alphaTest:0.04,side:THREE.DoubleSide,roughness:0.85,metalness:0});
+F.matMov=F.matFix.clone();
+F.fix=new THREE.Mesh(new THREE.BufferGeometry(),F.matFix);
+F.mov=new THREE.Mesh(new THREE.BufferGeometry(),F.matMov);
+F.mov.position.z=-EPS;F.mov.renderOrder=2;
+F.fixPivot.add(F.fix);F.movPivot.add(F.mov);
+F.axisLine=dashedAxis(0xffcf5a,1,1.5,'d');F.axisLine.position.z=0.016;F.hinge.add(F.axisLine);
+F.marks=new THREE.Group();F.root.add(F.marks);
+
+let axisHL=false;
+function highlightAxis(on){ // trục sáng lên khi rê chuột / đang kéo → báo hiệu tương tác được
+  if(axisHL===on)return;axisHL=on;const g=F.axisLine;
+  g.userData.mat.color.set(on?0xfff6c8:g.userData.color);
+  g.children.forEach(m=>{if(m.isMesh)m.scale.set(on?2.2:1,1,on?2:1);});
+  if(g.userData.label)g.userData.label.scale.setScalar(on?0.38:0.3);
+}
+function setCanvas(c){
+  F.canvas=c;
+  if(F.tex)F.tex.dispose();
+  F.tex=new THREE.CanvasTexture(c);F.tex.colorSpace=THREE.SRGBColorSpace;F.tex.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  F.matFix.map=F.matMov.map=F.tex;F.matFix.needsUpdate=F.matMov.needsUpdate=true;
+}
+function halfGeo(x0,x1){
+  const {a,px,py}=F.axis, n=[Math.sin(a),-Math.cos(a)], u=[Math.cos(a),Math.sin(a)];
+  const pts=[[x0,-R],[x1,-R],[x1,R],[x0,R]], pos=[], uv=[], nor=[];
+  pts.forEach(([lx,ly])=>{
+    pos.push(lx,ly,0);nor.push(0,0,1);
+    const wx=px+lx*n[0]+ly*u[0], wy=py+lx*n[1]+ly*u[1];
+    uv.push(wx/S+0.5,wy/S+0.5);
+  });
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex([0,1,2,0,2,3]);return g;
+}
+function setAxis(aDeg,px=0,py=0){
+  F.axis={a:aDeg*DEG,px,py};
+  F.hinge.position.set(px,py,0);F.hinge.rotation.z=F.axis.a-PI/2;
+  F.fix.geometry.dispose();F.mov.geometry.dispose();
+  F.fix.geometry=halfGeo(-R,0);F.mov.geometry=halfGeo(0,R);
+}
+function setT(t){
+  F.t=t;
+  if(F.both){const th=t*PI/2*0.985;F.movPivot.rotation.y=-th;F.fixPivot.rotation.y=th;}
+  else{F.movPivot.rotation.y=-t*PI;F.fixPivot.rotation.y=0;}
+}
+function showAxis(on){F.axisLine.visible=!!on;}
+function ghost(on){F.matMov.opacity=on?0.8:1;F.matMov.depthWrite=!on;F.matMov.needsUpdate=true;}
+function clearMarks(){while(F.marks.children.length)F.marks.remove(F.marks.children[0]);}
+function addMark(aDeg,color,opacity=1,label,px=0,py=0){
+  const m=dashedAxis(color,opacity,1.5,label);m.position.set(px,py,0.02);m.rotation.z=aDeg*DEG-PI/2;F.marks.add(m);return m;
+}
+
+/* ---- Kiểm tra hai nửa có chồng khít: so sánh từng điểm ảnh với điểm đối xứng ---- */
+function matchScore(c,aDeg,px=0,py=0){
+  const M=256, t=document.createElement('canvas');t.width=t.height=M;
+  const g=t.getContext('2d',{willReadFrequently:true});g.drawImage(c,0,0,M,M);
+  const d=g.getImageData(0,0,M,M).data, a=aDeg*DEG, n=[Math.sin(a),-Math.cos(a)];
+  let tot=0,bad=0;
+  for(let j=0;j<M;j++)for(let i=0;i<M;i++){
+    const wx=(i+0.5)/M*S-S/2, wy=S/2-(j+0.5)/M*S;
+    const dd=(wx-px)*n[0]+(wy-py)*n[1], rx=wx-2*dd*n[0], ry=wy-2*dd*n[1];
+    const ii=Math.floor((rx+S/2)/S*M), jj=Math.floor((S/2-ry)/S*M);
+    const k=(j*M+i)*4, A=d[k+3];
+    const inside=ii>=0&&jj>=0&&ii<M&&jj<M, k2=(jj*M+ii)*4, B=inside?d[k2+3]:0;
+    if(A<128&&B<128)continue; tot++;
+    if((A>=128)!==(B>=128)){bad++;continue;}
+    const cd=Math.abs(d[k]-d[k2])+Math.abs(d[k+1]-d[k2+1])+Math.abs(d[k+2]-d[k2+2]);
+    if(cd>110)bad++;
+  }
+  return tot?1-bad/tot:1;
+}
+
+/* ---- lưới ô vuông (bài 5.4) ---- */
+const grid=(()=>{const c=document.createElement('canvas');c.width=c.height=1024;const g=c.getContext('2d');
+  g.fillStyle='#f4fbfd';g.fillRect(0,0,1024,1024);g.strokeStyle='#9fd3e6';g.lineWidth=2;
+  for(let i=0;i<=12;i++){const x=i*1024/12;g.beginPath();g.moveTo(x,0);g.lineTo(x,1024);g.moveTo(0,x);g.lineTo(1024,x);g.stroke();}
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(S,S),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}));m.position.z=-0.03;m.visible=false;scene.add(m);return m;})();
+
+/* ---- vòng lặp render ---- */
+let flap=false;const clock=new THREE.Clock();
+function resize(){const w=view.clientWidth,h=view.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(view);resize();
+renderer.setAnimationLoop(()=>{
+  const t=clock.getElapsedTime();
+  if(flap)setT(0.2+0.16*Math.sin(t*4.2));
+  controls.update();renderer.render(scene,camera);
+});
+
+/* ---- Kéo trực tiếp trục d trên khung 3D (bước nào đặt axisDrag thì dùng được) ----
+   Kéo thân trục: tịnh tiến song song; kéo gần đầu trục (chỗ nhãn d): xoay trục. */
+let axisDrag=null, drag=null, interact=null, idrag=false;
+const ray=new THREE.Raycaster(), zPlane=new THREE.Plane(new THREE.Vector3(0,0,1),0);
+function planePoint(e){
+  const r=renderer.domElement.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),camera);
+  const p=new THREE.Vector3();return ray.ray.intersectPlane(zPlane,p)?p:null;
+}
+function axisHit(P){
+  const {a,px,py}=F.axis,u=[Math.cos(a),Math.sin(a)],n=[Math.sin(a),-Math.cos(a)],dx=P.x-px,dy=P.y-py;
+  const dist=Math.abs(dx*n[0]+dy*n[1]),along=dx*u[0]+dy*u[1];
+  if(dist>0.22||Math.abs(along)>1.95)return null;
+  return Math.abs(along)>0.95?'rot':'move';
+}
+const cvs=renderer.domElement;
+cvs.addEventListener('pointerdown',e=>{
+  if(interact&&!busy){const P=planePoint(e);if(P&&interact.down(P)){idrag=true;controls.enabled=false;cvs.setPointerCapture(e.pointerId);e.stopImmediatePropagation();e.preventDefault();}return;}
+  if(!axisDrag||busy)return;const P=planePoint(e);if(!P)return;const mode=axisHit(P);if(!mode)return;
+  drag={mode};controls.enabled=false;highlightAxis(true);cvs.setPointerCapture(e.pointerId);e.stopImmediatePropagation();e.preventDefault();
+},{capture:true});
+cvs.addEventListener('pointermove',e=>{
+  if(interact){const P=planePoint(e);if(!P)return;if(idrag)interact.move(P);else view.style.cursor=busy?'':(interact.hover(P)||'');return;}
+  if(!axisDrag)return;const P=planePoint(e);if(!P)return;
+  if(!drag){const m=axisHit(P);view.style.cursor=m==='rot'?'crosshair':m==='move'?'move':'';highlightAxis(!!m&&!busy);return;}
+  if(F.t>0){epoch++;busy=false;setT(0);verdict(null);}
+  const {a,px,py}=F.axis;let ang=a/DEG,off;
+  if(drag.mode==='rot'){
+    ang=Math.atan2(P.y-py,P.x-px)/DEG;ang=Math.round(((ang%180)+180)%180/5)*5%180;
+    const n=[Math.sin(ang*DEG),-Math.cos(ang*DEG)];off=px*n[0]+py*n[1];
+  }else{
+    const n=[Math.sin(a),-Math.cos(a)];off=P.x*n[0]+P.y*n[1];
+  }
+  if(Math.abs(off)<0.08)off=0; off=Math.max(-1,Math.min(1,off));
+  axisDrag(ang,off);
+},{capture:true});
+const endDrag=()=>{if(drag){drag=null;controls.enabled=true;highlightAxis(false);}if(idrag){idrag=false;controls.enabled=true;interact?.up();}};
+cvs.addEventListener('pointerleave',()=>{if(!drag)highlightAxis(false);});
+cvs.addEventListener('pointerup',endDrag);cvs.addEventListener('pointercancel',endDrag);
+
+/* ---- tween ---- */
+let epoch=0;
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+function tween(dur,fn){
+  const e=epoch;return new Promise(res=>{const t0=performance.now();
+    (function st(now){if(e!==epoch)return res(false);const k=Math.min(1,(now-t0)/dur);fn(ease(k));if(k<1)requestAnimationFrame(st);else res(true);})(t0);});
+}
+function foldTo(target,dur=1500){const a=F.t;if(Math.abs(target-a)>0.3&&!F.both)sfx('fold');return tween(dur*Math.max(.25,Math.abs(target-a)),k=>setT(a+(target-a)*k));}
+function camTo(c,dur=1100){
+  const p0=camera.position.clone(),t0=controls.target.clone(),p1=new THREE.Vector3(...c.p),t1=new THREE.Vector3(...c.t);
+  return tween(dur,k=>{camera.position.lerpVectors(p0,p1,k);controls.target.lerpVectors(t0,t1,k);});
+}
+
+/* =====================================================================
+   3. Giao diện chung
+   ===================================================================== */
+const sidebody=$('#sidebody'), dockEl=$('#dock'), verdictEl=$('#verdict'), stepsBar=$('#stepsBar');
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2000);}
+function verdict(kind,msg){verdictEl.className='verdict'+(kind?' '+kind:'');verdictEl.textContent=msg||'';}
+function dock(html,tip){ // tip: hướng dẫn hiện khi rê chuột lên nút ⓘ (đặt cuối nhóm nút cuối cùng)
+  if(tip)html=html.replace(/<\/div>\s*$/,`<span class="infobtn" tabindex="0" role="button" aria-label="Hướng dẫn">i<span class="tip" role="tooltip">${tip}</span></span></div>`);
+  dockEl.innerHTML=html;dockEl.style.display=html?'flex':'none';}
+const TIPS={
+  drag:'<b>Kéo trực tiếp trục d</b> trên hình: kéo thân trục để dời trục, kéo đầu trục (chỗ chữ <i>d</i>) để xoay. Rồi bấm <b>Gấp</b> để kiểm tra hai phần có chồng khít không.',
+  hex:'Kéo trục d (thân trục để dời, đầu trục để xoay) rồi bấm <b>Gấp</b>. Mỗi trục đối xứng tìm được sẽ được giữ lại bằng nét <b>xanh lá</b>. Đếm số trục rồi trả lời ở bảng bên cạnh.',
+  f53:'Bấm vào một hình ở bảng bên phải để chọn / bỏ chọn – hình vừa bấm hiện trong khung 3D. Kéo trục d rồi bấm <b>Gấp</b> để thử, sau đó bấm <b>Kiểm tra</b>.',
+  f54:'Chọn hình ở các tab phía trên bảng bên phải, kéo trục d rồi bấm <b>Gấp</b> để thử – nhớ thử cả các đường chéo. Rồi chọn số trục đối xứng của từng hình.',
+};
+const head=(chip,title)=>`<span class="chip">${chip}</span><h2>${title}</h2>`;
+const nar=t=>`<div class="nar"><div class="av">GV</div><div class="tx">${t}</div></div>`;
+function figURL(draw,px=640){ // ảnh cho ô chọn / gallery – vẽ ở độ phân giải cao để hiển thị to vẫn sắc nét
+  const c=document.createElement('canvas');c.width=c.height=px;const g=c.getContext('2d');
+  g.setTransform(px/S,0,0,px/S,px/2,px/2);g.lineJoin='round';g.lineCap='round';draw(g);return c.toDataURL();
+}
+function mcq(host,{q,opts,ok,okMsg,noMsg,onOk}){
+  host.innerHTML=`<div class="card"><p><b>${q}</b></p><div class="opts">${opts.map((o,i)=>`<button class="opt" type="button" data-i="${i}"><i>${'ABCD'[i]}</i><span>${o}</span></button>`).join('')}</div><div class="fb"></div></div>`;
+  const fb=$('.fb',host);
+  $$('.opt',host).forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i;
+    if(i===ok){b.classList.add('ok');$$('.opt',host).forEach(x=>x.disabled=true);fb.className='fb show ok';fb.innerHTML='✔ '+okMsg;sfx('ok');onOk&&onOk();}
+    else{b.classList.add('no');b.disabled=true;fb.className='fb show no';const m=Array.isArray(noMsg)?noMsg[i]:noMsg;fb.innerHTML='✘ '+m;sfx('no');}
+  });
+}
+
+/* ---- hiệu ứng âm thanh (tạo bằng Web Audio, không cần file) ---- */
+let AC=null;
+function ac(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}return AC;}
+function tone(freq,t0,dur,{type='sine',vol=0.15,to=null}={}){
+  const c=ac();if(!c)return;const o=c.createOscillator(),g=c.createGain(),t=c.currentTime+t0;
+  o.type=type;o.frequency.setValueAtTime(freq,t);if(to)o.frequency.exponentialRampToValueAtTime(to,t+dur);
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.015);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g).connect(c.destination);o.start(t);o.stop(t+dur+0.05);
+}
+function noise(t0,dur,{vol=0.12,freq=1200,q=0.8,type='bandpass',sweep=null}={}){
+  const c=ac();if(!c)return;const n=Math.floor(c.sampleRate*dur),buf=c.createBuffer(1,n,c.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+  const src=c.createBufferSource(),fl=c.createBiquadFilter(),g=c.createGain(),t=c.currentTime+t0;
+  src.buffer=buf;fl.type=type;fl.Q.value=q;fl.frequency.setValueAtTime(freq,t);if(sweep)fl.frequency.exponentialRampToValueAtTime(sweep,t+dur);
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+dur*0.3);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  src.connect(fl).connect(g).connect(c.destination);src.start(t);src.stop(t+dur+0.05);
+}
+const SFX={
+  tap:()=>tone(880,0,0.06,{type:'triangle',vol:0.07}),
+  ok:()=>{tone(784,0,0.14,{vol:0.13});tone(1047,0.1,0.22,{vol:0.13});},
+  no:()=>{tone(220,0,0.16,{type:'square',vol:0.05});tone(185,0.13,0.22,{type:'square',vol:0.05});},
+  fold:()=>noise(0,0.45,{vol:0.10,freq:500,sweep:2400}),
+  paper:()=>noise(0,0.25,{vol:0.08,freq:3000,q:0.5,type:'highpass'}),
+  snip:()=>{noise(0,0.06,{vol:0.16,freq:4500,q:2});tone(2600,0,0.04,{type:'square',vol:0.03});},
+  win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,i*0.09,0.28,{type:'triangle',vol:0.11})),
+};
+function sfx(name){try{SFX[name]&&SFX[name]();}catch(e){}}
+// tiếng "tách" nhẹ cho mọi nút bấm điều khiển
+document.addEventListener('pointerdown',e=>{if(e.target.closest('.dk,.subtab,.step,.tile,.wchip,.stage-nav,.ghost,.intro-explore,.next-btn,#bChk'))sfx('tap');},true);
+
+$('#btnFullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{});else document.exitFullscreen?.().catch(()=>{});};
+
+/* =====================================================================
+   4. Nội dung các bước (Luyện tập 5.1 – 5.4)
+   ===================================================================== */
+let busy=false;
+async function run(fn){if(busy)return;busy=true;try{await fn();}finally{busy=false;}}
+async function foldCheck(okMsg='✔ Hai phần chồng khít – đây là trục đối xứng!',noMsg='✘ Hai phần KHÔNG chồng khít'){
+  verdict(null);const e=epoch;const done=await foldTo(1);if(!done||e!==epoch)return null;
+  const s=matchScore(F.canvas,F.axis.a/DEG,F.axis.px,F.axis.py);const ok=s>=0.98;
+  verdict(ok?'ok':'no',ok?okMsg:noMsg);sfx(ok?'ok':'no');return ok;
+}
+async function unfold(){verdict(null);await foldTo(0);}
+// trục d kéo tự do
+function freeAxis(a0=60,o0=0.35){
+  const st={ang:a0,off:o0};
+  const apply=()=>setAxis(st.ang,st.off*Math.sin(st.ang*DEG),-st.off*Math.cos(st.ang*DEG));
+  axisDrag=(a,o)=>{st.ang=a;st.off=o;apply();};
+  st.reset=()=>{st.ang=a0;st.off=o0;apply();};
+  apply();showAxis(true);ghost(true);return st;
+}
+const tabImg=(draw,k,on,done,label)=>`<button class="subtab sg ${on?'on':''}" type="button" data-f="${k}" aria-label="${label}">${done?'<b>✓</b>':''}<img alt="" src="${figURL(draw)}"><span>${label}</span></button>`;
+
+const STEPS=[
+/* ---------------- 5.1 Hình thang cân ---------------- */
+{label:'Hình thang cân',
+ mount(p){
+  setCanvas(cTrap());const ax=freeAxis(60,0.35);let solved=false;
+  dock(`<div class="grp"><button class="dk pri" id="bFold">Gấp</button><button class="dk" id="bOpen">Mở</button><button class="dk" id="bRe">↺ Đặt lại trục</button></div>`,TIPS.drag);
+  $('#bOpen').onclick=()=>run(unfold);
+  $('#bRe').onclick=()=>{if(busy)return;setT(0);verdict(null);ax.reset();};
+  $('#bFold').onclick=()=>run(async()=>{const ok=await foldCheck();if(!ok||solved)return;solved=true;
+    clearMarks();addMark(90,0x6fa85b,1);
+    $('#r1').innerHTML=`<div class="kcard"><div class="kh">Kết quả</div><p>Hình thang cân có <b>một</b> trục đối xứng: đó là <span class="red">đường thẳng đi qua trung điểm của hai đáy</span>.</p></div>`;complete(0);});
+  p.innerHTML=`<h2>Hãy chỉ ra trục đối xứng của hình thang cân</h2>
+   <div class="card"><p>Kéo đường thẳng <b>d</b> trong khung 3D đến vị trí mà khi gấp theo d, hai phần của hình thang cân <b>chồng khít</b> lên nhau.</p></div><div id="r1"></div>`;
+ }},
+/* ---------------- 5.2 Lục giác đều ---------------- */
+{label:'Lục giác đều',
+ mount(p){
+  setCanvas(cHex());freeAxis(20,0.3);const found=new Set();let solved=false;
+  const ALL=[0,30,60,90,120,150];
+  const marks=()=>{clearMarks();(solved?ALL:[...found]).forEach(a=>addMark(a,0x6fa85b,1));};
+  dock(`<div class="grp"><button class="dk pri" id="bFold">Gấp</button><button class="dk" id="bOpen">Mở</button></div>`,TIPS.hex);
+  $('#bOpen').onclick=()=>run(unfold);
+  $('#bFold').onclick=()=>run(async()=>{const ok=await foldCheck();if(!ok)return;
+    const a=Math.round(F.axis.a/DEG)%180;if(!found.has(a)){found.add(a);marks();}
+    $('#fnd').className='fb show info';$('#fnd').innerHTML=`Em đã tìm được <b>${found.size}</b> trục đối xứng.`;});
+  p.innerHTML=`<h2>Hình lục giác đều có bao nhiêu trục đối xứng?</h2>
+   <div class="fb" id="fnd"></div>
+   <div class="card"><div class="cntq">${[3,4,6,8].map(n=>`<button class="nb" type="button" data-n="${n}">${n}</button>`).join('')}</div><div class="fb" id="fbH"></div></div><div id="r2"></div>`;
+  $$('.nb',p).forEach(b=>b.onclick=()=>{if(solved)return;const fb=$('#fbH');
+    if(+b.dataset.n===6){solved=true;b.classList.add('ok');$('.cntq',p).classList.add('done');fb.className='fb show ok';fb.innerHTML='✔ Đúng! Hình lục giác đều có 6 trục đối xứng.';sfx('ok');marks();
+      $('#r2').innerHTML=`<div class="kcard"><div class="kh">Kết quả</div><p>Hình lục giác đều có <b>6</b> trục đối xứng:</p><ul><li>3 đường thẳng nối hai <b>đỉnh đối diện</b>;</li><li>3 đường thẳng nối <b>trung điểm hai cạnh đối diện</b>.</li></ul></div>`;complete(1);}
+    else{b.classList.remove('no');void b.offsetWidth;b.classList.add('no');sfx('no');fb.className='fb show no';fb.innerHTML='✘ Chưa đúng. Hãy kéo trục d qua các đỉnh và trung điểm các cạnh rồi gấp thử để đếm lại nhé.';}});
+ }},
+/* ---------------- 5.3 Hình nào có trục đối xứng ---------------- */
+{label:'Hình nào đối xứng?',
+ mount(p){
+  let k='a',solved=false;
+  const sel=()=>{epoch++;busy=false;verdict(null);setT(0);setCanvas(mk(FIG53[k].draw));freeAxis(60,0.35);clearMarks();
+    if(solved)FIG53[k].ax.forEach(a=>addMark(a,0x6fa85b,1));
+    $$('#tiles .tile').forEach(x=>x.classList.toggle('view',x.dataset.k===k));};
+  dock(`<div class="grp"><button class="dk pri" id="bFold">Gấp</button><button class="dk" id="bOpen">Mở</button></div>`,TIPS.f53);
+  $('#bFold').onclick=()=>run(()=>foldCheck());$('#bOpen').onclick=()=>run(unfold);
+  p.innerHTML=`<h2>Trong các hình dưới đây, hình nào có trục đối xứng?</h2>
+   <div class="card"><div class="tiles t4" id="tiles">${Object.entries(FIG53).map(([s,f])=>`<button class="tile" type="button" data-k="${s}"><img alt="${f.name}" src="${figURL(f.draw)}"></button>`).join('')}</div>
+    <button class="qbtn" id="bChk" type="button">Kiểm tra</button><div class="fb" id="fb3"></div></div><div id="r3"></div>`;
+  multiSelect({onPick:x=>{k=x;sel();},ans:new Set(['a','c','d']),fb:$('#fb3'),btn:$('#bChk'),
+    hint:(miss,extra)=>`${miss.length?`Em còn thiếu ${miss.length} hình. `:''}${extra.length?`Hình ${extra.map(x=>FIG53[x].name.toLowerCase()).join(', ')} không có trục đối xứng – thử gấp lại xem!`:''}`,
+    onOk:()=>{solved=true;sel();$('#fb3').innerHTML='✔ Chính xác! Các hình có trục đối xứng là <b>lá cờ, cỏ ba lá, biển cấm</b>.';
+      $('#r3').innerHTML=`<div class="kcard"><div class="kh">Kết quả</div><ul>
+       <li>Lá cờ: trục đối xứng là đường thẳng đứng đi qua tâm ngôi sao.</li>
+       <li>Cỏ ba lá: trục đối xứng là đường thẳng đứng đi qua cuống lá.</li>
+       <li>Biển cấm: có <b>hai</b> trục – đường chứa vạch chéo và đường vuông góc với nó tại tâm.</li>
+       <li>Chữ P: không có trục đối xứng.</li></ul><p class="hint">Bấm vào từng hình: các trục đối xứng được tô xanh lá trong khung 3D.</p></div>`;complete(2);}});
+  sel();
+ }},
+/* ---------------- 5.4 Hình trên lưới ô vuông ---------------- */
+{label:'Đếm trục trên lưới',
+ mount(p){
+  let k='a';const done=new Set();grid.visible=true;
+  const sel=()=>{epoch++;busy=false;verdict(null);setT(0);setCanvas(mk(FIG54[k].draw));freeAxis(60,0.35);clearMarks();
+    if(done.has(k))FIG54[k].ax.forEach(a=>addMark(a,0x6fa85b,1));
+    $('#ftabs').innerHTML=Object.entries(FIG54).map(([s,f])=>tabImg(f.draw,s,s===k,done.has(s),s)).join('');
+    $$('[data-f]').forEach(b=>b.onclick=()=>{k=b.dataset.f;sel();});
+    $$('.cntq',p).forEach(r=>r.style.display=r.dataset.k===k?'':'none');
+    const fb=$('#fb4');if(done.has(k)){fb.className='fb show ok';fb.innerHTML=`✔ ${FIG54[k].name} ${FIG54[k].n?`có ${FIG54[k].n} trục đối xứng`:'không có trục đối xứng'}.`;}else fb.className='fb';};
+  dock(`<div class="grp"><button class="dk pri" id="bFold">Gấp</button><button class="dk" id="bOpen">Mở</button></div>`,TIPS.f54);
+  $('#bFold').onclick=()=>run(()=>foldCheck());$('#bOpen').onclick=()=>run(unfold);
+  p.innerHTML=`<div class="subtabs" id="ftabs"></div><h2>Hình này có bao nhiêu trục đối xứng?</h2>
+   <div class="card">${Object.keys(FIG54).map(s=>`<div class="cntq" data-k="${s}">${['Không có','1 trục','2 trục'].map((t,n)=>`<button class="nb" style="width:auto;padding:0 14px;font-size:16px!important" type="button" data-n="${n}">${t}</button>`).join('')}</div>`).join('')}<div class="fb" id="fb4"></div></div><div id="r4"></div>`;
+  $$('.cntq',p).forEach(row=>$$('.nb',row).forEach(b=>b.onclick=()=>{
+    const s=row.dataset.k,f=FIG54[s],fb=$('#fb4');if(done.has(s))return;
+    if(+b.dataset.n===f.n){b.classList.add('ok');row.classList.add('done');done.add(s);sfx('ok');sel();
+      if(done.size===4){$('#r4').innerHTML=`<div class="kcard"><div class="kh">Kết quả</div><ul>
+        <li>a) Hình <b>không có</b> trục đối xứng: <b>hình c</b>.</li>
+        <li>b) Hình <b>chỉ có một</b> trục đối xứng: <b>hình a</b> và <b>hình d</b>.</li>
+        <li>c) Hình có <b>hai</b> trục đối xứng: <b>hình b</b>.</li></ul></div>`;complete(3);}}
+    else{b.classList.remove('no');void b.offsetWidth;b.classList.add('no');sfx('no');fb.className='fb show no';fb.innerHTML='✘ Chưa đúng. Hãy kéo trục d theo chiều đứng, ngang và cả đường chéo rồi gấp thử nhé.';}
+  }));
+  sel();
+ }},
+/* ---------------- Trắc nghiệm ---------------- */
+{label:'Trắc nghiệm',full:true,
+ mount(p){
+  const Q=[
+   {q:'Đường thẳng d là trục đối xứng của một hình khi:',opts:['d chia hình thành hai phần bất kì','Gấp hình theo d thì hai phần chồng khít lên nhau','d đi qua một đỉnh của hình','d luôn là đường thẳng đứng'],ok:1,
+    okMsg:'Gấp hình theo trục đối xứng thì hai phần của hình chồng khít lên nhau.'},
+   {q:'Một hình có thể có bao nhiêu trục đối xứng?',opts:['Chỉ đúng một trục','Luôn có ít nhất một trục','Một, nhiều hoặc không có trục nào','Luôn có hai trục'],ok:2,
+    okMsg:'Một hình có thể có một, nhiều (thậm chí vô số) hoặc không có trục đối xứng nào.'},
+   {q:'Hai phần của hình nằm ở hai bên trục đối xứng thì:',opts:['Có hình dạng và kích thước giống nhau','Một phần lớn hơn phần kia','Có hình dạng khác nhau','Không có mối liên hệ gì'],ok:0,
+    okMsg:'Hai phần đó giống hệt nhau nên khi gấp lại chúng chồng khít lên nhau.'},
+   {q:'Phát biểu nào sau đây là <u>đúng</u>?',opts:['Mọi hình đều có trục đối xứng','Trục đối xứng luôn nằm ngang','Mọi đường thẳng chia hình thành hai phần đều là trục đối xứng','Có những hình không có trục đối xứng'],ok:3,
+    okMsg:'Ví dụ: hình bình hành, chữ P, số 7 không có trục đối xứng.'},
+   {q:'Để kiểm tra một đường thẳng có phải là trục đối xứng của hình hay không, ta có thể:',opts:['Đo chiều dài đường thẳng đó','Gấp hình theo đường thẳng đó và xem hai phần có chồng khít không','Tô màu hai phần của hình','Đếm số đỉnh của hình'],ok:1,
+    okMsg:'Gấp hình theo đường thẳng đó: nếu hai phần chồng khít thì đó là trục đối xứng.'},
+  ];
+  let i=0,score=0,wrong=false;
+  p.innerHTML=`<div class="prog" id="prog">${Q.map(()=>'<span></span>').join('')}</div><div id="qz"></div><div id="r5"></div>`;
+  const dots=()=>$$('#prog span').forEach((s,j)=>{if(j===i&&i<Q.length)s.className='cur';});
+  const show=()=>{dots();const x=Q[i];wrong=false;
+    mcq($('#qz'),{q:`Câu ${i+1}/${Q.length}. ${x.q}`,opts:x.opts,ok:x.ok,okMsg:x.okMsg,noMsg:'Chưa đúng, em chọn lại nhé!',
+      onOk:()=>{$$('#prog span')[i].className=wrong?'no':'ok';if(!wrong)score++;
+        const w=document.createElement('div');w.className='next-wrap';
+        w.innerHTML=`<button class="qbtn next-btn" type="button">${i<Q.length-1?'Câu tiếp theo ▶':'Xem kết quả ▶'}</button>`;
+        w.firstChild.onclick=()=>{i++;if(i<Q.length)show();else finish();};$('#qz .card').appendChild(w);}});
+    $$('#qz .opt').forEach(b=>b.addEventListener('click',()=>{if(+b.dataset.i!==x.ok)wrong=true;}));};
+  const finish=()=>{$('#qz').innerHTML='';
+    $('#r5').innerHTML=`<div class="kcard"><div class="kh">Kết quả</div><p>Em trả lời đúng ngay lần đầu <b>${score}/${Q.length}</b> câu.${score===Q.length?' Xuất sắc!':''}</p>
+      <button class="qbtn" id="bAgain" type="button">↺ Làm lại</button></div>`;
+    $('#bAgain').onclick=()=>{i=0;score=0;$('#r5').innerHTML='';$$('#prog span').forEach(s=>s.className='');show();};complete(4);};
+  show();
+ }},
+];
+
+function multiSelect({ans,fb,btn,hint,onOk,onPick}){
+  const tiles=$$('#tiles .tile');let solved=false;
+  tiles.forEach(t=>t.onclick=()=>{if(!solved){t.classList.toggle('sel');t.classList.remove('wrong','right');}onPick&&onPick(t.dataset.k);});
+  btn.onclick=()=>{
+    const chosen=tiles.filter(t=>t.classList.contains('sel')).map(t=>t.dataset.k);
+    const miss=[...ans].filter(k=>!chosen.includes(k)),extra=chosen.filter(k=>!ans.has(k));
+    if(!miss.length&&!extra.length){solved=true;tiles.forEach(t=>{if(!onPick)t.disabled=true;if(ans.has(t.dataset.k))t.classList.add('right');});btn.disabled=true;fb.className='fb show ok';sfx('ok');onOk();}
+    else{tiles.forEach(t=>{if(extra.includes(t.dataset.k)){t.classList.remove('wrong');void t.offsetWidth;t.classList.add('wrong');}});fb.className='fb show no';fb.innerHTML='✘ Chưa đúng. '+hint(miss,extra);sfx('no');}
+  };
+}
+
+/* =====================================================================
+   5. Điều phối bước + khoá tiến độ
+   ===================================================================== */
+let cur=0;const finished=new Set(); // các bước đã làm xong (chỉ để hiện dấu ✓, không khoá bước)
+function renderBar(){
+  stepsBar.innerHTML=STEPS.map((s,i)=>`<button class="step ${finished.has(i)?'done':''}" type="button" data-i="${i}" aria-pressed="${i===cur}"><b>${finished.has(i)?'✓':i+1}</b><span>${s.label}</span></button>`).join('');
+  $('#btnPrev').disabled=cur<=0;
+  $('#btnNext').disabled=cur>=STEPS.length-1;
+  $('#btnNext').classList.toggle('nudge',finished.has(cur)&&cur<STEPS.length-1);
+  stepsBar.children[cur]?.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+}
+stepsBar.onclick=e=>{const b=e.target.closest('.step');if(b)goTo(+b.dataset.i);};
+$('#btnPrev').onclick=()=>goTo(cur-1);
+$('#btnNext').onclick=()=>goTo(cur+1);
+window.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName))return;if(e.key==='ArrowRight')goTo(cur+1);else if(e.key==='ArrowLeft')goTo(cur-1);});
+
+function complete(i){
+  if(!finished.has(i))setTimeout(()=>sfx('win'),350);
+  finished.add(i);
+  renderBar();
+  if(i===cur&&i<STEPS.length-1&&!$('.next-wrap.go')){
+    const w=document.createElement('div');w.className='next-wrap go';
+    w.innerHTML=`<button class="qbtn next-btn" type="button">Tiếp tục: ${STEPS[i+1].label} ▶</button>`;
+    w.firstChild.onclick=()=>goTo(i+1);
+    $('.sec',sidebody).appendChild(w);
+    setTimeout(()=>w.scrollIntoView({behavior:'smooth',block:'nearest'}),150);
+  }
+}
+function resetScene(){ // đặt lại cảnh 3D
+  epoch++;busy=false;axisDrag=null;drag=null;interact=null;idrag=false;controls.enabled=true;view.style.cursor='';highlightAxis(false);
+  flap=false;F.both=false;grid.visible=false;clearMarks();ghost(false);setT(0);verdict(null);dock('');
+  camTo(CAM0,700);
+}
+function goTo(n){
+  n=Math.max(0,Math.min(STEPS.length-1,n));
+  cur=n;resetScene();$('#stage').classList.toggle('full',!!STEPS[n].full);
+  controls.autoRotate=false;
+  sidebody.innerHTML='<div class="sec"></div>';sidebody.scrollTop=0;
+  STEPS[n].mount($('.sec',sidebody));
+  renderBar();
+  if(finished.has(n))complete(n);
+
+}
+
+/* =====================================================================
+   6. Màn hình mở đầu
+   ===================================================================== */
+$('#loadingEl').style.display='none';resize();goTo(0);
+setTimeout(()=>$('#stageHint').classList.add('hide'),5000);
+// cho phép mở thẳng một bước khi xem thử: ?step=5
+const qs=new URLSearchParams(location.search);
+
+window.__lesson={goTo,STEPS,matchScore,F};
+</script>
+</body>
+</html>

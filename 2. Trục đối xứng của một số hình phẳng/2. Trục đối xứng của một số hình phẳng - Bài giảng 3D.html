@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>Trục đối xứng của một số hình phẳng | YooBook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<script type="importmap">{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}</script>
+<style>
+:root{
+  --brand:#195856; --brand-dark:#0f3f3d; --brand-light:#2f827d; --brand-soft:#e6f0ee;
+  --ink:#10302d; --muted:#5f8b89; --line:#dbe8e5; --stage-mid:#f1f9f7; --stage-bottom:#dcebe7;
+  --ok:#6fa85b; --bad:#c96a4f; --gold:#ffcf5a; --red:#d6382f;
+  --r:16px; --r-sm:11px;
+  --sh-1:0 1px 2px rgba(13,42,40,.05);
+  --sh-2:0 2px 6px rgba(13,42,40,.06),0 18px 34px -22px rgba(13,42,40,.45);
+  --sh-3:0 10px 30px -12px rgba(13,42,40,.32);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:'Roboto',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.5;color:var(--ink);background:#195658;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit}
+.app{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line);box-shadow:var(--sh-1);z-index:20;flex:0 0 auto}
+.logoclip{height:27px;display:flex;align-items:center;flex:0 0 auto}
+.logo{height:27px;display:block}
+.titles{flex:1;min-width:0}
+.badge{display:inline-block;max-width:100%;font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--brand);background:var(--brand-soft);border-radius:99px;padding:2px 9px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
+.titles h1{margin:0;font-weight:700;font-size:18px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-btn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--brand-dark)}
+.tb-btn:hover{background:var(--brand-soft);border-color:var(--brand-light)}
+.main{flex:1;min-height:0;display:flex;flex-direction:column;padding:14px;overflow:hidden}
+.frame{background:#fff;border-radius:var(--r);box-shadow:var(--sh-2);display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.stage{position:relative;flex:1;min-height:0;background:radial-gradient(75% 80% at 32% 45%,#23706d 0%,#195658 55%,#123f3e 100%);overflow:hidden}
+.vignette{position:absolute;inset:0;z-index:1;pointer-events:none;box-shadow:inset 0 0 90px rgba(15,63,61,.10)}
+.stage-tools{position:absolute;left:10px;top:10px;z-index:6;display:flex;gap:8px;flex-wrap:wrap}
+.ghost{background:rgba(255,255,255,.90);backdrop-filter:blur(8px) saturate(1.3);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 11px;font-size:12.5px;font-weight:500;color:var(--brand-dark);cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:var(--sh-1)}
+.ghost[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}
+.stage-nav{position:absolute;top:50%;z-index:30;transform:translateY(-50%);width:38px;height:38px;border-radius:99px;border:1px solid var(--line);background:rgba(255,255,255,.88);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--brand-dark);box-shadow:var(--sh-1);font-size:16px}
+.stage-nav.prev{left:12px}.stage-nav.next{right:12px}
+.stage-nav[disabled]{opacity:.3;pointer-events:none}
+.stage-nav.nudge{animation:nudgePulse 1.2s ease infinite}
+@keyframes nudgePulse{0%,100%{box-shadow:0 0 0 0 rgba(255,207,90,.8)}50%{box-shadow:0 0 0 10px rgba(255,207,90,0)}}
+
+/* vùng 3D (bên trái) + bảng bài học (bên phải) */
+.view{position:absolute;z-index:2;left:0;top:0;bottom:0;right:calc(min(500px,44%) + 60px);touch-action:none;cursor:grab}
+.view:active{cursor:grabbing}
+.view canvas{display:block;width:100%!important;height:100%!important}
+.lesson{position:absolute;z-index:7;right:60px;top:12px;bottom:12px;width:min(500px,44%);display:flex;flex-direction:column;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-radius:var(--r);box-shadow:var(--sh-3);overflow:hidden}
+.sidebody{flex:1;min-height:0;overflow:auto;padding:18px 20px 16px;background:linear-gradient(#fff,var(--stage-mid) 70%,var(--stage-bottom))}
+.sec{animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.chip{display:inline-block;font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-soft);border-radius:99px;padding:3px 11px;margin-bottom:6px}
+.sec h2{margin:0 0 10px;font-size:22px;line-height:1.3;color:var(--brand-dark)}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-1);padding:14px 16px;margin:12px 0}
+.card p{font-size:16px;line-height:1.6;margin:0}
+.card p+p{margin-top:8px}
+.kcard{border-radius:var(--r-sm);padding:12px 14px;margin-top:12px;border:1.5px solid var(--brand-light);background:#fff;box-shadow:var(--sh-1);animation:fade .35s ease}
+.kcard .kh{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--brand);border-radius:99px;padding:4px 12px 4px 9px;margin-bottom:8px}
+.kcard .kh::before{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+.kcard p,.kcard li{margin:0;font-size:16px;line-height:1.6}
+.kcard ul{margin:0;padding-left:20px}
+.kcard li+li{margin-top:4px}
+.red{color:var(--red);font-weight:700}
+.kwd{font-weight:700;color:var(--brand-light)}
+.nar{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-left:4px solid var(--brand-light);border-radius:var(--r-sm);padding:10px 12px;margin:0 0 12px;box-shadow:var(--sh-1)}
+.nar .av{flex:0 0 30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+.nar .tx{font-size:16px;line-height:1.6}
+.opts{display:flex;flex-direction:column;gap:8px;margin:10px 0 0}
+.opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;padding:11px 13px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:16px;cursor:pointer}
+.opt i{font-style:normal;flex:0 0 24px;height:24px;border-radius:50%;background:var(--brand-soft);color:var(--brand);font-weight:700;font-size:12.5px;display:flex;align-items:center;justify-content:center}
+.opt:hover:not(:disabled){border-color:var(--brand-light);background:var(--stage-mid)}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-dark);font-weight:600}
+.opt.ok i{background:var(--brand);color:#fff}
+.opt.no{border-color:var(--bad);background:#fbeae4;color:#a54527}
+.opt.no i{background:var(--bad);color:#fff}
+.fb{display:none;margin:10px 0 0;padding:10px 13px;border-radius:var(--r-sm);font-size:15.5px;line-height:1.6}
+.fb.show{display:block;animation:fade .25s ease}
+.fb.ok{background:var(--brand-soft);color:var(--brand-dark)}
+.fb.no{background:#fbeae4;color:#a54527}
+.fb.infobtn{background:#fff6dd;color:#6b4d13}
+.qbtn{border:0;border-radius:11px;padding:11px 20px;font-size:15.5px;font-weight:600;cursor:pointer;background:var(--brand);color:#fff;margin:10px 8px 0 0}
+.qbtn:hover:not(:disabled){background:var(--brand-dark)}
+.qbtn:disabled{opacity:.45;cursor:not-allowed}
+.next-wrap{margin:16px 0 4px;display:flex;justify-content:flex-end}
+.next-btn{margin:0;padding:12px 22px;animation:nudgePulse 1.4s ease .5s infinite}
+.hint{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+/* tab con HĐ1–HĐ3 */
+.subtabs{display:flex;gap:8px;margin:0 0 14px}
+.subtab{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:11px;background:#fff;color:var(--brand-dark);font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;box-shadow:var(--sh-1);transition:background .15s,border-color .15s,transform .1s}
+.subtab:hover:not(.on){border-color:var(--brand-light);background:var(--stage-mid);transform:translateY(-1px)}
+.subtab:active{transform:translateY(1px)}
+.subtab.lt{font-size:19px;font-weight:800;color:#2a9fe0;padding:6px 4px}
+.subtab.lt.on{color:#fff}
+.tiles.gal{grid-template-columns:repeat(5,1fr)}
+.tile.cap{aspect-ratio:auto;flex-direction:column;gap:4px;padding:8px 4px 6px}
+.tile.cap img{width:100%;height:auto;aspect-ratio:1}
+.tile .cp{font-size:11.5px;font-weight:600;line-height:1.25;color:var(--brand-dark);text-align:center}
+.tile.view{box-shadow:0 0 0 3px var(--gold)}
+.tile .iw{position:relative;display:block;width:100%}
+.tile .iw img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain}
+.tile.showax .iw::after{content:'';position:absolute;left:50%;top:2%;bottom:2%;margin-left:-1.5px;border-left:3px dashed #e9a800}
+/* bước gallery: chiếm toàn bộ khung */
+.stage.full .view,.stage.full .dock,.stage.full .verdict,.stage.full .stage-hint,.stage.full .stage-tools{display:none!important}
+.stage.full .lesson{left:60px;right:60px;width:auto}
+.stage.full .lesson{background:transparent;box-shadow:none;backdrop-filter:none} /* bỏ khung trắng ngoài cùng */
+.stage.full .sidebody{background:transparent;padding-top:6px}
+.stage.full .sec>h2{color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.25)}
+.stage.full .sec>.card:first-of-type{margin-top:6px}
+.stage.full .tiles.gal{grid-template-columns:repeat(5,1fr);gap:14px}
+.stage.full .tile.cap{padding:12px 10px 10px;gap:8px}
+/* gallery giãn hết chiều cao khung: 2 hàng thẻ chia đều phần trống */
+.stage.full .sidebody{display:flex;flex-direction:column}
+.stage.full .sec{flex:1 0 auto;display:flex;flex-direction:column}
+.stage.full .sec>.card:first-of-type{flex:1 0 auto;display:flex;flex-direction:column;min-height:400px;margin-bottom:0}
+.stage.full .tiles.gal{flex:1;grid-template-rows:repeat(2,minmax(0,1fr))}
+.stage.full .sec>.card:first-of-type>.qbtn{align-self:flex-start}
+.stage.full .tile.cap{justify-content:center;min-height:0}
+.stage.full .tile .iw{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+.stage.full .tile .iw img{width:auto;height:100%;max-width:100%;aspect-ratio:1}
+.stage.full .tile .cp{font-size:18px;font-weight:700}
+.stage.full .sec>h2{font-size:26px}
+.stage.full .card p{font-size:18px}
+.stage.full .card .hint{font-size:16px}
+.tile.sel.view{box-shadow:0 0 0 3px var(--gold),0 0 0 6px rgba(25,88,86,.15)}
+.subtab.sg{padding:5px 6px}
+.subtab.sg img{width:38px;height:38px;flex:0 0 38px}
+.subtab.sg span{font-size:14px}
+.subtab span{overflow:hidden;text-overflow:ellipsis}
+.subtab b{flex:0 0 20px;height:20px;border-radius:50%;background:var(--brand-soft);color:var(--brand);font-size:11px;display:flex;align-items:center;justify-content:center}
+.subtab.on{background:var(--brand);border-color:var(--brand-dark);color:#fff;box-shadow:0 4px 10px -4px rgba(15,63,61,.5)}
+.subtab.on b{background:rgba(255,255,255,.25);color:#fff}
+.subtab.done:not(.on) b{background:var(--brand);color:#fff}
+.subtab.locked{opacity:.45;cursor:not-allowed}
+/* ô chọn (chữ cái / biển báo) */
+.tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:10px}
+.tiles.t4{grid-template-columns:repeat(4,1fr)}
+.tile{position:relative;aspect-ratio:1;border-radius:12px;border:2px solid var(--line);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px}
+.tile img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.tile .tl{position:absolute;left:4px;bottom:2px;font-size:11px;font-weight:700;color:var(--muted)}
+.tile.sel{border-color:var(--brand);background:var(--brand-soft);box-shadow:0 0 0 3px rgba(25,88,86,.15)}
+.tile.sel::after{content:'✓';position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.tile.right{border-color:var(--ok);background:#eef7ea}
+.tile.wrong{border-color:var(--bad);background:#fbeae4;animation:shake .4s}
+.tile:disabled{cursor:default}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+/* điền khuyết */
+.blank{display:inline-block;min-width:92px;border-bottom:2px dashed var(--brand-light);padding:0 6px;margin:0 2px;text-align:center;color:var(--muted);font-weight:600}
+.blank.cur{border-bottom-color:var(--gold);background:#fff6dd;border-radius:6px 6px 0 0}
+.blank.filled{border-bottom:2px solid var(--brand);color:var(--red);font-weight:700}
+.bank{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.wchip{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font-size:15px;cursor:pointer;color:var(--brand-dark);font-weight:500}
+.wchip:hover:not(:disabled){border-color:var(--brand-light);background:var(--stage-mid)}
+.wchip.no{border-color:var(--bad);background:#fbeae4;animation:shake .4s}
+.wchip:disabled{opacity:.35;cursor:default}
+/* câu hỏi số trục */
+.cntq{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;border-radius:var(--r-sm);background:#fff;border:1px solid var(--line)}
+.cntq .lbl{flex:1 1 180px;font-size:15.5px;font-weight:600}
+.cntq .nb{width:52px;height:52px;font-size:20px!important;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:16px;font-weight:700;color:var(--brand-dark);cursor:pointer}
+.cntq .nb.ok{background:var(--brand);border-color:var(--brand);color:#fff}
+.cntq .nb.no{background:#fbeae4;border-color:var(--bad);color:#a54527;animation:shake .4s}
+.cntq.done .lbl::after{content:' ✔';color:var(--ok)}
+/* sắp xếp ví dụ */
+.sortbox{display:flex;gap:8px;margin-top:10px}
+.sortbox .qbtn{flex:1;margin:0}
+.sortbox .qbtn.alt{background:#fff;color:var(--brand-dark);border:1.5px solid var(--brand)}
+.prog{display:flex;gap:5px;margin:10px 0 0;flex-wrap:wrap}
+.prog span{width:22px;height:8px;border-radius:99px;background:var(--line)}
+.prog span.ok{background:var(--ok)} .prog span.no{background:var(--bad)} .prog span.cur{background:var(--gold)}
+.myex{width:100%;margin-top:8px;padding:10px 12px;border-radius:var(--r-sm);border:1.5px solid var(--line);font:inherit;font-size:15.5px;resize:vertical;min-height:64px}
+.myex:focus{outline:none;border-color:var(--brand-light)}
+.sumgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.sumgrid div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:14px;font-weight:600}
+.sumgrid b{display:block;font-size:24px;color:var(--brand)}
+
+/* thanh điều khiển 3D (dưới khung 3D) */
+.dock{position:absolute;z-index:6;left:62px;right:calc(min(500px,44%) + 72px);bottom:12px;display:none;flex-wrap:wrap;justify-content:center;gap:6px;pointer-events:none}
+.dock .grp{pointer-events:auto;display:flex;flex-wrap:wrap;align-items:center;gap:6px;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border-radius:14px;padding:6px 8px;box-shadow:var(--sh-3)}
+.dock .gl{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:0 4px}
+.dk{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:7px 12px;font-size:13.5px;font-weight:600;color:var(--brand-dark);cursor:pointer;white-space:nowrap}
+.dk:hover:not(:disabled){border-color:var(--brand-light);background:var(--stage-mid)}
+.dk.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.dk.pri{background:var(--gold);border-color:#e9b93c;color:#4a3200}
+.dk.pri:hover:not(:disabled){background:#ffd978}
+.dk:disabled{opacity:.4;cursor:not-allowed}
+.dk.found{border-color:var(--ok);color:#3f6b32;background:#eef7ea}
+.dk.miss{border-color:var(--bad);color:#a54527;background:#fbeae4}
+.dock input[type=range]{width:150px;accent-color:var(--brand)}
+.dock .val{font-size:13px;font-weight:700;color:var(--brand-dark);min-width:38px}
+.infobtn{position:relative;flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--brand-light);background:#fff;color:var(--brand);font:italic 700 14px Georgia,'Times New Roman',serif;display:flex;align-items:center;justify-content:center;cursor:help;outline:none}
+.infobtn:hover,.infobtn:focus{background:var(--brand);color:#fff;border-color:var(--brand)}
+.infobtn .tip{position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%) translateY(4px);width:min(300px,80vw);background:var(--brand-dark);color:#fff;font:400 13.5px/1.55 'Roboto',sans-serif;padding:10px 13px;border-radius:11px;box-shadow:var(--sh-3);opacity:0;visibility:hidden;transition:opacity .18s,transform .18s;pointer-events:none;text-align:left;z-index:10}
+.infobtn .tip::after{content:'';position:absolute;top:100%;left:50%;margin-left:-7px;border:7px solid transparent;border-top-color:var(--brand-dark)}
+.infobtn:hover .tip,.infobtn:focus .tip{opacity:1;visibility:visible;transform:translateX(-50%)}
+.verdict{pointer-events:none;position:absolute;z-index:6;top:58px;left:calc((100% - min(500px,44%) - 60px)/2);transform:translateX(-50%);padding:8px 16px;border-radius:99px;font-size:15px;font-weight:700;box-shadow:var(--sh-3);white-space:normal;text-align:center;width:max-content;max-width:calc(100% - min(500px,44%) - 150px);display:none;animation:fade .3s ease}
+.verdict.ok{display:block;background:#eef7ea;color:#2f5a24;border:2px solid var(--ok)}
+.verdict.no{display:block;background:#fbeae4;color:#a54527;border:2px solid var(--bad)}
+.verdict.info{display:block;background:#fff6dd;color:#6b4d13;border:2px solid var(--gold)}
+.stage-hint{position:absolute;z-index:5;left:62px;bottom:72px;background:rgba(255,255,255,.88);border-radius:99px;padding:6px 12px;font-size:12.5px;font-weight:500;color:var(--brand-dark);box-shadow:var(--sh-1);transition:opacity .6s}
+.stage-hint.hide{opacity:0;pointer-events:none}
+.toast{position:absolute;left:50%;top:14px;transform:translate(-50%,-20px);z-index:40;background:var(--brand-dark);color:#fff;padding:9px 16px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;box-shadow:var(--sh-3);white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.loading{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:linear-gradient(180deg,#fff,var(--stage-mid));text-align:center;padding:20px}
+.loading p{margin:0;color:var(--muted);font-size:13px}
+.spinner{width:34px;height:34px;border-radius:99px;border:3px solid var(--line);border-top-color:var(--brand);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.steps{display:flex;gap:8px;padding:10px 12px;overflow-x:auto;overflow-y:hidden;border-top:1px solid var(--line);scrollbar-width:none;flex:0 0 auto}
+.steps::-webkit-scrollbar{display:none}
+.step{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:7px 13px 7px 8px;border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap}
+.step b{width:20px;height:20px;border-radius:99px;background:var(--brand-soft);color:var(--brand-dark);font-size:11px;display:flex;align-items:center;justify-content:center}
+.step[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;animation:stepJump .28s ease}
+@keyframes stepJump{0%{transform:scale(.96)}70%{transform:scale(1.035)}100%{transform:scale(1)}}
+.step[aria-pressed="true"] b{background:rgba(255,255,255,.25);color:#fff}
+.step.done:not([aria-pressed="true"]) b{background:var(--brand);color:#fff}
+.step.locked{opacity:.5;cursor:not-allowed}
+.step.locked b{background:var(--line)}
+
+.intro-loader{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;overflow:hidden;background:radial-gradient(80% 70% at 50% 40%,#2f827d 0,#195856 58%,#0b2a29 100%);transition:opacity .45s}
+.intro-loader.gone{opacity:0;pointer-events:none}
+.intro-inner{position:relative;z-index:2;width:min(760px,92vw);display:flex;flex-direction:column;align-items:center;text-align:center;color:#fff}
+.intro-kicker{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#d6e78c}
+.intro-inner h1{font-size:clamp(30px,4.6vw,50px);margin:10px 0 12px;line-height:1.14;font-weight:800;letter-spacing:-.02em;text-shadow:0 4px 18px rgba(0,0,0,.4)}
+.intro-sub{max-width:680px;margin:0 auto 30px;font-size:14.5px;line-height:1.65;color:rgba(255,255,255,.93)}
+.intro-progress{width:min(410px,72vw);height:3px;margin:0 auto 14px;border-radius:99px;background:rgba(255,255,255,.36);overflow:hidden}
+.intro-progress span{display:block;height:100%;width:8%;background:#d8ff64;box-shadow:0 0 12px rgba(216,255,100,.5);transition:width .3s linear}
+#introStatus{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.ready-dot{width:8px;height:8px;border-radius:99px;background:#d8ff64;display:inline-block;margin-right:7px;box-shadow:0 0 10px rgba(216,255,100,.65)}
+.intro-explore{margin:20px auto 0;min-width:210px;padding:12px 20px;border-radius:10px;border:1px solid rgba(255,255,255,.34);cursor:pointer;background:rgba(25,88,86,.82);color:#fff;font-weight:700;font-size:14px;opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .28s,transform .28s,background .2s}
+.intro-loader.ready .intro-explore{opacity:1;transform:none;pointer-events:auto}
+.intro-explore:hover{background:rgba(47,130,125,.96)}
+.intro-credit{margin-top:30px;color:rgba(255,255,255,.86);font-size:12px}
+
+/* bước rộng (Tổng kết): bảng bên phải chiếm 50% chiều ngang */
+@media (min-width:901px){.stage.wide .lesson{width:50%}.stage.wide .view{right:calc(50% + 60px)}.stage.wide .sumgrid{grid-template-columns:repeat(4,1fr)}.stage.wide .dock{right:calc(50% + 72px)}.stage.wide .verdict{left:calc(25% - 30px);max-width:calc(50% - 150px)}}
+@media (max-width:900px){
+  .main{padding:10px}
+  .titles h1{font-size:15px}
+  .stage-nav{width:34px;height:34px;font-size:14px;top:25%}
+  .view{right:0;bottom:calc(50% + 50px)}
+  .lesson{left:8px;right:8px;top:auto;bottom:8px;width:auto;height:calc(50% - 8px)}
+  .stage-tools{left:8px;top:8px}
+  .ghost span{display:none}
+  .dock{left:8px;right:8px;bottom:calc(50% + 4px);flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none}
+  .dock::-webkit-scrollbar{display:none}
+  .dock{flex-wrap:wrap;justify-content:center;overflow:visible} /* cho khung ⓘ không bị cắt */
+  .dock .grp{flex-wrap:wrap}
+  .infobtn .tip{left:auto;right:-8px;transform:translateY(4px)}
+  .infobtn:hover .tip,.infobtn:focus .tip{transform:none}
+  .infobtn .tip::after{left:auto;right:14px}
+  .dock .grp{flex:0 0 auto;flex-wrap:nowrap;padding:4px 6px;gap:4px;border-radius:12px}
+  .dock .gl{display:none}
+  .dk{padding:5px 9px;font-size:12px}
+  .dock input[type=range]{width:100px}
+  .verdict{left:50%;top:50px;font-size:13px;max-width:calc(100% - 100px)}
+  .stage-hint{display:none}
+  .sec h2{font-size:19px}
+  .tiles{grid-template-columns:repeat(6,1fr);gap:6px}
+  .tiles.gal{grid-template-columns:repeat(4,1fr)}
+  .stage.full .lesson{left:8px;right:8px;top:8px;height:auto}
+  .stage.full .tiles.gal{grid-template-columns:repeat(3,1fr);gap:8px;grid-template-rows:none}
+  .stage.full .tile .iw{flex:none}
+  .stage.full .tile .iw img{width:100%;height:auto}
+  .stage.full .tile .cp{font-size:14px}
+  .stage.full .sec>h2{font-size:20px}
+  .stage.full .card p{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<div class="intro-loader" id="introLoader">
+  <div class="intro-inner">
+    <div class="intro-kicker">Toán 6 · Hình có trục đối xứng</div>
+    <h1>Trục đối xứng của một số hình phẳng</h1>
+    <p class="intro-sub">Gấp hình tròn, hình thoi, hình chữ nhật, cắt chữ cái bằng giấy… ngay trong không gian 3D để tìm trục đối xứng của các hình phẳng quen thuộc.</p>
+    <div class="intro-progress"><span id="introBar"></span></div>
+    <div id="introStatus"><span class="ready-dot"></span>Đang chuẩn bị mô hình 3D…</div>
+    <button class="intro-explore" id="btnExplore" type="button">Khám phá bài học</button>
+    <div class="intro-credit">Được phát triển bởi <strong>YooBook</strong></div>
+  </div>
+</div>
+
+<div class="app">
+  <header class="topbar">
+    <div class="logoclip"><img class="logo" alt="YooBook" src="data:image/png;base64,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"></div>
+    <div class="titles">
+      <div class="badge">Toán 6 · Hình có trục đối xứng</div>
+      <h1>Trục đối xứng của một số hình phẳng</h1>
+    </div>
+    <button class="tb-btn" id="btnFullscreen" aria-label="Toàn màn hình" type="button">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    </button>
+  </header>
+
+  <div class="main">
+    <div class="frame">
+      <div class="stage" id="stage">
+        <div class="vignette"></div>
+        <div class="view" id="view"></div>
+
+        <div class="stage-tools">
+          <button class="ghost" id="btnNarration" type="button" aria-pressed="true">🔊 <span>Thuyết minh</span></button>
+        </div>
+
+        <div class="verdict" id="verdict"></div>
+        <div class="dock" id="dock"></div>
+        <div class="stage-hint" id="stageHint">↻ Chạm và kéo để xoay mô hình</div>
+
+        <button class="stage-nav prev" id="btnPrev" type="button" aria-label="Bước trước">◀</button>
+        <button class="stage-nav next" id="btnNext" type="button" aria-label="Bước sau">▶</button>
+
+        <aside class="lesson"><div class="sidebody" id="sidebody"></div></aside>
+
+        <div class="toast" id="toast"></div>
+        <div class="loading" id="loadingEl"><div class="spinner"></div><p>Đang tải mô hình 3D…</p></div>
+      </div>
+      <div class="steps" id="stepsBar" role="tablist" aria-label="Các bước học"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// thanh tiến trình intro trong lúc tải three.js
+(function(){let w=8;const b=document.getElementById('introBar');window.__introTick=setInterval(()=>{w=Math.min(85,w+7);b.style.width=w+'%';},180);})();
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const PI=Math.PI, DEG=PI/180;
+
+/* =====================================================================
+   1. Vẽ hình phẳng lên canvas (đơn vị: 1 đơn vị = K px, gốc ở giữa,
+      trục y hướng XUỐNG giống canvas; mặt phẳng 3D rộng S đơn vị)
+   ===================================================================== */
+const S=3, N=1024, K=N/S;
+function mk(draw){
+  const c=document.createElement('canvas'); c.width=c.height=N;
+  const g=c.getContext('2d'); g.setTransform(K,0,0,K,N/2,N/2);
+  g.lineJoin='round'; g.lineCap='round'; draw(g); return c;
+}
+function line(g,pts,w,col){g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.lineWidth=w;g.strokeStyle=col;g.stroke();}
+function poly(g,pts,fill,stroke,w){g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.lineWidth=w;g.strokeStyle=stroke;g.stroke();}}
+function disk(g,x,y,r,fill,stroke,w){g.beginPath();g.arc(x,y,r,0,2*PI);if(fill){g.fillStyle=fill;g.fill();}if(stroke){g.lineWidth=w;g.strokeStyle=stroke;g.stroke();}}
+
+/* ---- con bướm ---- */
+const PAL_ORANGE={main:'#f07f1e',light:'#ffc15a',dark:'#1d1712',spot:'#fff'};
+const PAL_BLUE={main:'#2f74d0',light:'#7fc0ff',dark:'#0f2c57',spot:'#dff1ff'};
+function wingHalf(g,p){
+  // cánh trên
+  g.beginPath(); g.moveTo(0.06,-0.12);
+  g.bezierCurveTo(0.35,-0.75,0.95,-1.05,1.3,-0.92);
+  g.bezierCurveTo(1.42,-0.62,1.25,-0.25,0.95,-0.08);
+  g.bezierCurveTo(0.6,0.02,0.25,0.0,0.06,-0.02); g.closePath();
+  let gr=g.createRadialGradient(0.45,-0.42,0.05,0.6,-0.45,1.0); gr.addColorStop(0,p.light); gr.addColorStop(1,p.main);
+  g.fillStyle=gr; g.fill(); g.lineWidth=0.08; g.strokeStyle=p.dark; g.stroke();
+  // cánh dưới
+  g.beginPath(); g.moveTo(0.06,0.02);
+  g.bezierCurveTo(0.5,0.0,1.0,0.12,1.02,0.45);
+  g.bezierCurveTo(1.0,0.82,0.6,1.0,0.3,0.92);
+  g.bezierCurveTo(0.12,0.85,0.05,0.5,0.06,0.02); g.closePath();
+  gr=g.createRadialGradient(0.35,0.35,0.05,0.45,0.45,0.8); gr.addColorStop(0,p.light); gr.addColorStop(1,p.main);
+  g.fillStyle=gr; g.fill(); g.stroke();
+  // gân cánh
+  [[1.15,-0.84],[1.25,-0.52],[0.98,-0.2],[0.7,-0.75]].forEach(e=>line(g,[[0.1,-0.07],e],0.028,p.dark));
+  [[0.95,0.42],[0.78,0.78],[0.4,0.88]].forEach(e=>line(g,[[0.1,0.06],e],0.028,p.dark));
+  // chấm trắng viền cánh
+  g.fillStyle=p.spot;
+  [[1.2,-0.86],[1.3,-0.72],[1.32,-0.56],[1.24,-0.38],[1.06,-0.18],[1.02,-0.9],[0.95,0.5],[0.88,0.72],[0.7,0.86],[0.5,0.9]]
+    .forEach(([x,y])=>{g.beginPath();g.arc(x,y,0.038,0,2*PI);g.fill();});
+}
+function drawButterfly(p,withBody){
+  return mk(g=>{
+    g.save(); wingHalf(g,p); g.restore();
+    g.save(); g.scale(-1,1); wingHalf(g,p); g.restore();
+    if(withBody){
+      g.beginPath(); g.ellipse(0,0.05,0.075,0.55,0,0,2*PI); g.fillStyle=p.dark; g.fill();
+      disk(g,0,-0.56,0.1,p.dark);
+      line(g,[[0.03,-0.62],[0.12,-0.85],[0.28,-1.02]],0.025,p.dark);
+      line(g,[[-0.03,-0.62],[-0.12,-0.85],[-0.28,-1.02]],0.025,p.dark);
+    }
+  });
+}
+/* ---- hình tròn ---- */
+const cCircle=()=>mk(g=>{disk(g,0,0,1.1,'#8cc63f','#4f8a1c',0.04);disk(g,0,0,0.045,'#fff');});
+/* ---- biểu tượng (H.5.3c) ---- */
+const cEmblem=()=>mk(g=>{
+  disk(g,0,0,1.15,'#fff','#222',0.07);
+  g.beginPath();g.arc(0,0,0.88,-PI/2+0.32,1.5*PI-0.32);g.lineWidth=0.07;g.strokeStyle='#222';g.stroke();
+  line(g,[[-0.55,0.9],[-0.55,-0.08],[0,-0.62],[0.55,-0.08],[0.55,0.9]],0.07,'#222');
+  line(g,[[-0.28,0.9],[-0.28,0.05],[0,-0.25],[0.28,0.05],[0.28,0.9]],0.07,'#222');
+});
+/* ---- giấy cắt (HĐ3) ---- */
+const PAPER={w:2.0,h:2.6,col:'#f7c6d8',edge:'#e59ab8'};
+const CUTS={
+  heart:{name:'Trái tim',y0:-0.45,y1:0.98,half(g){g.moveTo(0,-0.45);g.bezierCurveTo(0.25,-1.05,1.05,-0.9,0.88,-0.15);g.bezierCurveTo(0.78,0.3,0.3,0.6,0,0.98);}},
+  vase:{name:'Cái lọ',y0:-1.0,y1:0.98,half(g){g.moveTo(0,-1.0);g.lineTo(0.35,-1.0);g.bezierCurveTo(0.18,-0.72,0.22,-0.5,0.58,-0.3);g.bezierCurveTo(1.0,0.0,0.82,0.72,0.42,0.98);g.lineTo(0,0.98);}},
+  tree:{name:'Cây thông',y0:-1.08,y1:1.02,half(g){g.moveTo(0,-1.08);g.lineTo(0.42,-0.45);g.lineTo(0.22,-0.45);g.lineTo(0.66,0.12);g.lineTo(0.38,0.12);g.lineTo(0.86,0.7);g.lineTo(0.15,0.7);g.lineTo(0.15,1.02);g.lineTo(0,1.02);}},
+};
+function cPaper(cut){return mk(g=>{
+  g.fillStyle=PAPER.col;g.fillRect(-PAPER.w/2,-PAPER.h/2,PAPER.w,PAPER.h);
+  g.lineWidth=0.02;g.strokeStyle=PAPER.edge;g.strokeRect(-PAPER.w/2,-PAPER.h/2,PAPER.w,PAPER.h);
+  if(!cut)return; // giấy trắng: học sinh tự vẽ đường cắt
+  g.setLineDash([0.07,0.06]);
+  [1,-1].forEach(s=>{g.save();g.scale(s,1);g.beginPath();cut.half(g);if(cut.hole){cut.hole(g);}g.restore();g.lineWidth=0.035;g.strokeStyle='#d9a0bd';g.stroke();});
+  g.setLineDash([]);
+});}
+function cCut(cut){return mk(g=>{
+  [1,-1].forEach(s=>{g.save();g.scale(s,1);g.beginPath();cut.half(g);g.closePath();g.fillStyle=PAPER.col;g.fill();g.restore();});
+  line(g,[[0,cut.y0+0.01],[0,cut.y1-0.01]],0.02,PAPER.col); // phủ đường nối giữa hai nửa
+  if(cut.hole){g.save();g.globalCompositeOperation='destination-out';[1,-1].forEach(s=>{g.save();g.scale(s,1);g.beginPath();cut.hole(g);g.closePath();g.fill();g.restore();});g.restore();}
+  [1,-1].forEach(s=>{g.save();g.scale(s,1);g.beginPath();cut.half(g);if(cut.hole)cut.hole(g);g.restore();g.lineWidth=0.02;g.strokeStyle=PAPER.edge;g.stroke();});
+});}
+function cScrap(cut){ // phần giấy thừa (nửa trái, khi đang gấp)
+  const c=document.createElement('canvas');c.width=256;c.height=Math.round(256*PAPER.h);
+  const g=c.getContext('2d');g.setTransform(256,0,0,256,256,c.height/2);
+  g.fillStyle=PAPER.col;g.fillRect(-1,-PAPER.h/2,1,PAPER.h);
+  g.globalCompositeOperation='destination-out';
+  g.save();g.scale(-1,1);g.beginPath();cut.half(g);g.lineTo(-0.02,1.1);g.lineTo(-0.02,-1.1);g.closePath();g.fill();g.restore();
+  g.globalCompositeOperation='source-over';
+  return c;
+}
+/* ---- chữ cái (nét đều để đối xứng chính xác) ---- */
+const LB='#2a9fe0', LW=0.27;
+const LETTERS={
+  A:g=>{line(g,[[-0.62,0.95],[0,-0.95],[0.62,0.95]],LW,LB);line(g,[[-0.36,0.28],[0.36,0.28]],LW,LB);},
+  B:g=>{g.beginPath();g.moveTo(-0.5,-0.95);g.lineTo(-0.5,0.95);g.moveTo(-0.5,-0.95);g.lineTo(0.08,-0.95);g.arc(0.08,-0.475,0.475,-PI/2,PI/2);g.lineTo(-0.5,0);g.moveTo(-0.5,0);g.lineTo(0.08,0);g.arc(0.08,0.475,0.475,-PI/2,PI/2);g.lineTo(-0.5,0.95);g.lineWidth=LW;g.strokeStyle=LB;g.stroke();},
+  G:g=>{g.beginPath();g.arc(0,0,0.9,-40*DEG,10*DEG,true);g.lineWidth=LW;g.strokeStyle=LB;g.stroke();line(g,[[0.89,0.16],[0.89,0.04],[0.28,0.04]],LW,LB);},
+  H:g=>{line(g,[[-0.6,-0.95],[-0.6,0.95]],LW,LB);line(g,[[0.6,-0.95],[0.6,0.95]],LW,LB);line(g,[[-0.6,0],[0.6,0]],LW,LB);},
+  E:g=>{line(g,[[0.5,-0.95],[-0.5,-0.95],[-0.5,0.95],[0.5,0.95]],LW,LB);line(g,[[-0.5,0],[0.38,0]],LW,LB);},
+  F:g=>{line(g,[[0.5,-0.95],[-0.5,-0.95],[-0.5,0.95]],LW,LB);line(g,[[-0.5,0],[0.35,0]],LW,LB);},
+};
+/* ---- biển báo ---- */
+const SIGN_NAMES={a:'cấm đi ngược chiều',b:'cấm người đi bộ',c:'chỉ lối đi',d:'đường hai chiều'};
+const SIGNS={
+  a:g=>{disk(g,0,0,1.15,'#d9302c','#fff',0.05);g.fillStyle='#fff';g.fillRect(-0.78,-0.2,1.56,0.4);},
+  b:g=>{disk(g,0,0,1.15,'#fff');disk(g,0,0,1.02,null,'#d9302c',0.22);
+    const k='#1b1b1b';disk(g,0.08,-0.55,0.14,k);
+    line(g,[[0.02,-0.33],[-0.06,0.15]],0.16,k);line(g,[[-0.32,0.0],[0.0,-0.25],[0.3,0.02]],0.1,k);
+    line(g,[[-0.06,0.15],[-0.36,0.62]],0.13,k);line(g,[[-0.06,0.15],[0.24,0.36],[0.3,0.68]],0.13,k);
+    line(g,[[-0.72,-0.72],[0.72,0.72]],0.2,'#d9302c');},
+  c:g=>{disk(g,0,0,1.15,'#1f7fd1','#fff',0.05);g.fillStyle='#fff';g.fillRect(-0.72,-0.17,0.86,0.34);poly(g,[[0.1,-0.5],[0.76,0],[0.1,0.5]],'#fff');},
+  d:g=>{ // biển "đường hai chiều" (theo ảnh mẫu): tam giác viền đỏ bo góc, nền vàng; mũi tên xuống bên trái, mũi tên lên bên phải
+    poly(g,[[0,-1.02],[1.16,0.9],[-1.16,0.9]],'#d7261e','#d7261e',0.22);
+    poly(g,[[0,-0.6],[0.86,0.76],[-0.86,0.76]],'#ffe600','#ffe600',0.05);
+    const k='#1b1b1b';g.fillStyle=k;
+    g.fillRect(-0.235,-0.16,0.13,0.54);poly(g,[[-0.36,0.36],[-0.17,0.66],[0.02,0.36]],k);   // ↓ bên trái
+    g.fillRect(0.105,0.02,0.13,0.6);poly(g,[[-0.02,0.04],[0.17,-0.26],[0.36,0.04]],k);      // ↑ bên phải
+  },
+};
+/* ---- hình học cơ bản ---- */
+const TRI_R=2.3/Math.sqrt(3);
+const SHAPES={
+  sq:{name:'Hình vuông',ans:4,draw:g=>poly(g,[[-0.95,-0.95],[0.95,-0.95],[0.95,0.95],[-0.95,0.95]],'#f2b134','#b77d0f',0.04),
+      cands:[{a:90,ok:1},{a:0,ok:1},{a:45,ok:1},{a:135,ok:1}]},
+  rect:{name:'Hình chữ nhật',ans:2,draw:g=>poly(g,[[-1.2,-0.7],[1.2,-0.7],[1.2,0.7],[-1.2,0.7]],'#5fb3a9','#2f7d74',0.04),
+      cands:[{a:90,ok:1},{a:0,ok:1},{a:Math.atan2(1.4,2.4)/DEG,ok:0},{a:180-Math.atan2(1.4,2.4)/DEG,ok:0}]},
+  tri:{name:'Tam giác đều',ans:3,draw:g=>poly(g,[[0,-TRI_R],[1.15,TRI_R/2],[-1.15,TRI_R/2]],'#e87b6b','#b14736',0.04),
+      cands:[{a:90,ok:1},{a:30,ok:1},{a:150,ok:1},{a:0,ok:0}]},
+};
+
+/* =====================================================================
+   2. Khung 3D (three.js)
+   ===================================================================== */
+const view=$('#view');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+view.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(38,1,0.1,100);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.enablePan=false;controls.minDistance=3;controls.maxDistance=12;controls.autoRotateSpeed=1.4;
+const CAM0={p:[1.5,0.6,6.3],t:[0,-0.05,0]};
+camera.position.set(...CAM0.p);controls.target.set(...CAM0.t);
+scene.add(new THREE.HemisphereLight(0xffffff,0x9fb9b5,2.2));
+const dl=new THREE.DirectionalLight(0xffffff,1.2);dl.position.set(2,-3,6);scene.add(dl);
+const dl2=new THREE.DirectionalLight(0xffffff,0.5);dl2.position.set(-3,3,-4);scene.add(dl2);
+// bóng mềm bên dưới
+const shadowTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');const gr=g.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(0,0,0,.35)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);})();
+const shadow=new THREE.Mesh(new THREE.PlaneGeometry(4.2,4.2),new THREE.MeshBasicMaterial({map:shadowTex,transparent:true,depthWrite:false}));
+shadow.position.z=-0.35;scene.add(shadow);
+
+function labelSprite(txt,bg,fg){
+  const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');
+  g.fillStyle=bg;g.beginPath();g.arc(64,64,54,0,2*PI);g.fill();
+  g.fillStyle=fg;g.font='italic 800 72px Roboto, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,64,68);
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false}));s.scale.set(0.3,0.3,1);s.renderOrder=10;return s;
+}
+function dashedAxis(color,opacity=1,L=1.5,label){
+  const g=new THREE.Group();
+  const mat=new THREE.MeshBasicMaterial({color,transparent:opacity<1,opacity});
+  const geo=new THREE.BoxGeometry(0.04,0.12,0.012);
+  for(let y=-L;y<=L;y+=0.2){const m=new THREE.Mesh(geo,mat);m.position.y=y;g.add(m);}
+  if(label){const s=labelSprite(label,color===0xffcf5a?'#ffcf5a':'#6fa85b','#3a2a00');s.position.set(0,L+0.22,0.05);g.add(s);g.userData.label=s;}
+  g.userData.mat=mat;g.userData.color=color;
+  return g;
+}
+
+/* ---- Bộ gấp hình: tách hình phẳng thành 2 nửa theo một đường thẳng bất kì ---- */
+const R=S*0.75, EPS=0.004;
+const F={
+  root:new THREE.Group(), hinge:new THREE.Group(), fixPivot:new THREE.Group(), movPivot:new THREE.Group(),
+  t:0, both:false, axis:{a:PI/2,px:0,py:0}, canvas:null, tex:null,
+};
+scene.add(F.root);F.root.add(F.hinge);F.hinge.add(F.fixPivot,F.movPivot);F.movPivot.position.z=EPS;
+F.matFix=new THREE.MeshStandardMaterial({transparent:true,alphaTest:0.04,side:THREE.DoubleSide,roughness:0.85,metalness:0});
+F.matMov=F.matFix.clone();
+F.fix=new THREE.Mesh(new THREE.BufferGeometry(),F.matFix);
+F.mov=new THREE.Mesh(new THREE.BufferGeometry(),F.matMov);
+F.mov.position.z=-EPS;F.mov.renderOrder=2;
+F.fixPivot.add(F.fix);F.movPivot.add(F.mov);
+F.axisLine=dashedAxis(0xffcf5a,1,1.5,'d');F.axisLine.position.z=0.016;F.hinge.add(F.axisLine);
+F.marks=new THREE.Group();F.root.add(F.marks);
+
+let axisHL=false;
+function highlightAxis(on){ // trục sáng lên khi rê chuột / đang kéo → báo hiệu tương tác được
+  if(axisHL===on)return;axisHL=on;const g=F.axisLine;
+  g.userData.mat.color.set(on?0xfff6c8:g.userData.color);
+  g.children.forEach(m=>{if(m.isMesh)m.scale.set(on?2.2:1,1,on?2:1);});
+  if(g.userData.label)g.userData.label.scale.setScalar(on?0.38:0.3);
+}
+function setCanvas(c){
+  F.canvas=c;
+  if(F.tex)F.tex.dispose();
+  F.tex=new THREE.CanvasTexture(c);F.tex.colorSpace=THREE.SRGBColorSpace;F.tex.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  F.matFix.map=F.matMov.map=F.tex;F.matFix.needsUpdate=F.matMov.needsUpdate=true;
+}
+function halfGeo(x0,x1){
+  const {a,px,py}=F.axis, n=[Math.sin(a),-Math.cos(a)], u=[Math.cos(a),Math.sin(a)];
+  const pts=[[x0,-R],[x1,-R],[x1,R],[x0,R]], pos=[], uv=[], nor=[];
+  pts.forEach(([lx,ly])=>{
+    pos.push(lx,ly,0);nor.push(0,0,1);
+    const wx=px+lx*n[0]+ly*u[0], wy=py+lx*n[1]+ly*u[1];
+    uv.push(wx/S+0.5,wy/S+0.5);
+  });
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex([0,1,2,0,2,3]);return g;
+}
+function setAxis(aDeg,px=0,py=0){
+  F.axis={a:aDeg*DEG,px,py};
+  F.hinge.position.set(px,py,0);F.hinge.rotation.z=F.axis.a-PI/2;
+  F.fix.geometry.dispose();F.mov.geometry.dispose();
+  F.fix.geometry=halfGeo(-R,0);F.mov.geometry=halfGeo(0,R);
+}
+function setT(t){
+  F.t=t;
+  if(F.both){const th=t*PI/2*0.985;F.movPivot.rotation.y=-th;F.fixPivot.rotation.y=th;}
+  else{F.movPivot.rotation.y=-t*PI;F.fixPivot.rotation.y=0;}
+}
+function showAxis(on){F.axisLine.visible=!!on;}
+function ghost(on){F.matMov.opacity=on?0.8:1;F.matMov.depthWrite=!on;F.matMov.needsUpdate=true;}
+function clearMarks(){while(F.marks.children.length)F.marks.remove(F.marks.children[0]);}
+function addMark(aDeg,color,opacity=1,label,px=0,py=0){
+  const m=dashedAxis(color,opacity,1.5,label);m.position.set(px,py,0.02);m.rotation.z=aDeg*DEG-PI/2;F.marks.add(m);return m;
+}
+
+/* ---- Kiểm tra hai nửa có chồng khít: so sánh từng điểm ảnh với điểm đối xứng ---- */
+function matchScore(c,aDeg,px=0,py=0){
+  const M=256, t=document.createElement('canvas');t.width=t.height=M;
+  const g=t.getContext('2d',{willReadFrequently:true});g.drawImage(c,0,0,M,M);
+  const d=g.getImageData(0,0,M,M).data, a=aDeg*DEG, n=[Math.sin(a),-Math.cos(a)];
+  let tot=0,bad=0;
+  for(let j=0;j<M;j++)for(let i=0;i<M;i++){
+    const wx=(i+0.5)/M*S-S/2, wy=S/2-(j+0.5)/M*S;
+    const dd=(wx-px)*n[0]+(wy-py)*n[1], rx=wx-2*dd*n[0], ry=wy-2*dd*n[1];
+    const ii=Math.floor((rx+S/2)/S*M), jj=Math.floor((S/2-ry)/S*M);
+    const k=(j*M+i)*4, A=d[k+3];
+    const inside=ii>=0&&jj>=0&&ii<M&&jj<M, k2=(jj*M+ii)*4, B=inside?d[k2+3]:0;
+    if(A<128&&B<128)continue; tot++;
+    if((A>=128)!==(B>=128)){bad++;continue;}
+    const cd=Math.abs(d[k]-d[k2])+Math.abs(d[k+1]-d[k2+1])+Math.abs(d[k+2]-d[k2+2]);
+    if(cd>110)bad++;
+  }
+  return tot?1-bad/tot:1;
+}
+
+/* ---- Con bướm 3D: thân + râu ---- */
+const bfly=new THREE.Group();
+{
+  const mat=new THREE.MeshStandardMaterial({color:0x2a211c,roughness:0.55});
+  const body=new THREE.Mesh(new THREE.CapsuleGeometry(0.075,1.0,6,18),mat);body.position.set(0,-0.05,0.05);bfly.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.1,18,14),mat);head.position.set(0,0.6,0.06);bfly.add(head);
+  [1,-1].forEach(s=>{
+    const cv=new THREE.CatmullRomCurve3([new THREE.Vector3(0.03*s,0.66,0.08),new THREE.Vector3(0.13*s,0.88,0.2),new THREE.Vector3(0.3*s,1.05,0.26)]);
+    bfly.add(new THREE.Mesh(new THREE.TubeGeometry(cv,16,0.012,6),mat));
+    const tip=new THREE.Mesh(new THREE.SphereGeometry(0.03,10,8),mat);tip.position.set(0.3*s,1.05,0.26);bfly.add(tip);
+  });
+}
+bfly.visible=false;scene.add(bfly);
+
+/* ---- Mảnh giấy thừa bay ra khi cắt (HĐ3) ---- */
+const scrap=new THREE.Mesh(new THREE.PlaneGeometry(1,PAPER.h),new THREE.MeshStandardMaterial({transparent:true,side:THREE.DoubleSide,roughness:.9}));
+scrap.visible=false;scene.add(scrap);
+
+/* ---- Lớp vẽ đường cắt trên nửa giấy đã gấp (x∈[-1,0]) + chiếc kéo ---- */
+const INK_H=Math.round(256*PAPER.h), inkCanvas=document.createElement('canvas');inkCanvas.width=256;inkCanvas.height=INK_H;
+const inkTex=new THREE.CanvasTexture(inkCanvas);inkTex.colorSpace=THREE.SRGBColorSpace;
+const ink=new THREE.Mesh(new THREE.PlaneGeometry(1,PAPER.h),new THREE.MeshBasicMaterial({map:inkTex,transparent:true,depthWrite:false}));
+ink.position.set(-0.5,0,0.02);ink.renderOrder=5;ink.visible=false;scene.add(ink);
+function drawInk(pts,solidTo=-1){
+  const g=inkCanvas.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,256,INK_H);
+  g.setTransform(256,0,0,256,256,INK_H/2);g.lineCap=g.lineJoin='round';
+  // nếp gấp (mép phải của tờ giấy đã gấp)
+  g.setLineDash([0.06,0.05]);g.lineWidth=0.03;g.strokeStyle='#f2b51f';g.beginPath();g.moveTo(-0.016,-PAPER.h/2);g.lineTo(-0.016,PAPER.h/2);g.stroke();g.setLineDash([]);
+  if(pts.length>1){
+    g.lineWidth=0.028;g.strokeStyle='#b0306a';g.beginPath();pts.forEach(([x,y],i)=>i?g.lineTo(x,-y):g.moveTo(x,-y));g.stroke();
+    if(solidTo>0){g.lineWidth=0.04;g.strokeStyle='#5a1236';g.beginPath();pts.slice(0,solidTo+1).forEach(([x,y],i)=>i?g.lineTo(x,-y):g.moveTo(x,-y));g.stroke();}
+  }
+  inkTex.needsUpdate=true;
+}
+const scissor=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');g.font='96px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('✂️',64,68);
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false}));sp.scale.set(0.42,0.42,1);sp.renderOrder=11;sp.visible=false;scene.add(sp);return sp;})();
+
+/* ---- vòng lặp render ---- */
+let flap=false;const clock=new THREE.Clock();
+function resize(){const w=view.clientWidth,h=view.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(view);resize();
+renderer.setAnimationLoop(()=>{
+  const t=clock.getElapsedTime();
+  if(flap)setT(0.2+0.16*Math.sin(t*4.2));
+  controls.update();renderer.render(scene,camera);
+});
+
+/* ---- Kéo trực tiếp trục d trên khung 3D (bước nào đặt axisDrag thì dùng được) ----
+   Kéo thân trục: tịnh tiến song song; kéo gần đầu trục (chỗ nhãn d): xoay trục. */
+let axisDrag=null, drag=null, interact=null, idrag=false;
+const ray=new THREE.Raycaster(), zPlane=new THREE.Plane(new THREE.Vector3(0,0,1),0);
+function planePoint(e){
+  const r=renderer.domElement.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),camera);
+  const p=new THREE.Vector3();return ray.ray.intersectPlane(zPlane,p)?p:null;
+}
+function axisHit(P){
+  const {a,px,py}=F.axis,u=[Math.cos(a),Math.sin(a)],n=[Math.sin(a),-Math.cos(a)],dx=P.x-px,dy=P.y-py;
+  const dist=Math.abs(dx*n[0]+dy*n[1]),along=dx*u[0]+dy*u[1];
+  if(dist>0.22||Math.abs(along)>1.95)return null;
+  return Math.abs(along)>0.95?'rot':'move';
+}
+const cvs=renderer.domElement;
+cvs.addEventListener('pointerdown',e=>{
+  if(interact&&!busy){const P=planePoint(e);if(P&&interact.down(P)){idrag=true;controls.enabled=false;cvs.setPointerCapture(e.pointerId);e.stopImmediatePropagation();e.preventDefault();}return;}
+  if(!axisDrag||busy)return;const P=planePoint(e);if(!P)return;const mode=axisHit(P);if(!mode)return;
+  drag={mode};controls.enabled=false;highlightAxis(true);cvs.setPointerCapture(e.pointerId);e.stopImmediatePropagation();e.preventDefault();
+},{capture:true});
+cvs.addEventListener('pointermove',e=>{
+  if(interact){const P=planePoint(e);if(!P)return;if(idrag)interact.move(P);else view.style.cursor=busy?'':(interact.hover(P)||'');return;}
+  if(!axisDrag)return;const P=planePoint(e);if(!P)return;
+  if(!drag){const m=axisHit(P);view.style.cursor=m==='rot'?'crosshair':m==='move'?'move':'';highlightAxis(!!m&&!busy);return;}
+  if(F.t>0){epoch++;busy=false;setT(0);verdict(null);}
+  const {a,px,py}=F.axis;let ang=a/DEG,off;
+  if(drag.mode==='rot'){
+    ang=Math.atan2(P.y-py,P.x-px)/DEG;ang=Math.round(((ang%180)+180)%180/5)*5%180;
+    const n=[Math.sin(ang*DEG),-Math.cos(ang*DEG)];off=px*n[0]+py*n[1];
+  }else{
+    const n=[Math.sin(a),-Math.cos(a)];off=P.x*n[0]+P.y*n[1];
+  }
+  if(Math.abs(off)<0.08)off=0; off=Math.max(-1,Math.min(1,off));
+  axisDrag(ang,off);
+},{capture:true});
+const endDrag=()=>{if(drag){drag=null;controls.enabled=true;highlightAxis(false);}if(idrag){idrag=false;controls.enabled=true;interact?.up();}};
+cvs.addEventListener('pointerleave',()=>{if(!drag)highlightAxis(false);});
+cvs.addEventListener('pointerup',endDrag);cvs.addEventListener('pointercancel',endDrag);
+
+/* ---- tween ---- */
+let epoch=0;
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+function tween(dur,fn){
+  const e=epoch;return new Promise(res=>{const t0=performance.now();
+    (function st(now){if(e!==epoch)return res(false);const k=Math.min(1,(now-t0)/dur);fn(ease(k));if(k<1)requestAnimationFrame(st);else res(true);})(t0);});
+}
+function foldTo(target,dur=1500){const a=F.t;return tween(dur*Math.max(.25,Math.abs(target-a)),k=>setT(a+(target-a)*k));}
+function camTo(c,dur=1100){
+  const p0=camera.position.clone(),t0=controls.target.clone(),p1=new THREE.Vector3(...c.p),t1=new THREE.Vector3(...c.t);
+  return tween(dur,k=>{camera.position.lerpVectors(p0,p1,k);controls.target.lerpVectors(t0,t1,k);});
+}
+
+/* =====================================================================
+   3. Giao diện chung
+   ===================================================================== */
+const sidebody=$('#sidebody'), dockEl=$('#dock'), verdictEl=$('#verdict'), stepsBar=$('#stepsBar');
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2000);}
+function verdict(kind,msg){verdictEl.className='verdict'+(kind?' '+kind:'');verdictEl.textContent=msg||'';}
+function dock(html,tip){ // tip: hướng dẫn hiện khi rê chuột lên nút ⓘ (đặt cuối nhóm nút cuối cùng)
+  if(tip)html=html.replace(/<\/div>\s*$/,`<span class="infobtn" tabindex="0" role="button" aria-label="Hướng dẫn">i<span class="tip" role="tooltip">${tip}</span></span></div>`);
+  dockEl.innerHTML=html;dockEl.style.display=html?'flex':'none';}
+const TIPS={
+  bfly:'Bấm <b>Gấp hai cánh</b> để hai cánh bướm khép lại. Kéo trên khung 3D để xoay mô hình, nhìn thật kĩ xem hai cánh có chồng khít không. Bấm <b>Vỗ cánh</b> để bướm bay trở lại.',
+  cut:'Làm giống như cắt giấy thật: <b>①</b> Kéo mép phải tờ giấy sang trái để gấp đôi. <b>②</b> Dùng chuột / ngón tay vẽ đường cắt, bắt đầu và kết thúc ở nếp gấp (vạch vàng) – có thể chọn <b>Mẫu</b> để vẽ theo nét đứt. <b>③</b> Kéo lớp giấy phía trên sang phải để mở ra.',
+  concept:'Chọn từng hình a), b), c) rồi bấm <b>Gấp theo d</b> để kiểm tra: hai phần của hình có chồng khít lên nhau không?',
+  count:'Chọn hình ở các tab phía trên khung bên phải, chọn đường gấp ①②③④ rồi bấm <b>Gấp</b>. Đường nào làm hai phần <b>chồng khít</b> thì đó là một trục đối xứng. Tự đếm số trục rồi trả lời ở bảng bên cạnh – trả lời đúng thì các trục đối xứng sẽ hiện màu <b>xanh lá</b>.',
+  letters:'Chọn chữ cái ở các tab phía trên khung bên phải, chọn <b>Trục đứng</b> hoặc <b>Trục ngang</b> rồi bấm <b>Gấp</b> để thử. Sau đó chọn các chữ có trục đối xứng ở bảng bên cạnh.',
+  signs:'Chọn biển báo ở các tab phía trên khung bên phải, chọn <b>Trục đứng</b> hoặc <b>Trục ngang</b> rồi bấm <b>Gấp</b> để thử. Chú ý hình người đi bộ và hai mũi tên!',
+  examples:'Bấm vào các hình trong bộ sưu tập ở khung bên phải để chọn những hình có trục đối xứng. Hình vừa bấm hiện trong khung 3D – bấm <b>Gấp theo trục đứng</b> để kiểm tra, rồi bấm <b>Kiểm tra</b>.',
+};
+const head=(chip,title)=>`<span class="chip">${chip}</span><h2>${title}</h2>`;
+const nar=t=>`<div class="nar"><div class="av">GV</div><div class="tx">${t}</div></div>`;
+function figURL(draw,px=640){ // ảnh cho ô chọn / gallery – vẽ ở độ phân giải cao để hiển thị to vẫn sắc nét
+  const c=document.createElement('canvas');c.width=c.height=px;const g=c.getContext('2d');
+  g.setTransform(px/S,0,0,px/S,px/2,px/2);g.lineJoin='round';g.lineCap='round';draw(g);return c.toDataURL();
+}
+/* Câu hỏi tự luận: học sinh tự viết; máy chỉ gợi ý theo từ khoá rồi hiện kết quả để tự đối chiếu */
+function essay(host,{key,q,good,okMsg,onDone}){
+  host.innerHTML=`<div class="card"><p><b>${q}</b></p><textarea class="myex" placeholder="Em viết câu trả lời của mình vào đây…"></textarea>
+    <button class="qbtn" type="button">Gửi câu trả lời</button><div class="fb"></div></div>`;
+  const ta=$('textarea',host),btn=$('.qbtn',host),fb=$('.fb',host);let sent=false;
+  try{ta.value=localStorage.getItem(key)||'';}catch(e){}
+  btn.onclick=()=>{
+    const v=ta.value.trim();
+    if(v.length<8){fb.className='fb show no';fb.textContent='Em hãy viết câu trả lời đầy đủ hơn một chút nhé!';return;}
+    try{localStorage.setItem(key,v);}catch(e){}
+    const ok=good.test(v.toLowerCase());
+    fb.className='fb show '+(ok?'ok':'info');
+    fb.innerHTML=ok?okMsg:'Cảm ơn em! Hãy so sánh câu trả lời của em với kết quả bên dưới nhé.';
+    speak(ok?'Rất tốt!':'Cảm ơn em!');
+    if(!sent){sent=true;btn.textContent='Cập nhật câu trả lời';onDone&&onDone();}
+  };
+}
+function mcq(host,{q,opts,ok,okMsg,noMsg,onOk}){
+  host.innerHTML=`<div class="card"><p><b>${q}</b></p><div class="opts">${opts.map((o,i)=>`<button class="opt" type="button" data-i="${i}"><i>${'ABCD'[i]}</i><span>${o}</span></button>`).join('')}</div><div class="fb"></div></div>`;
+  const fb=$('.fb',host);
+  $$('.opt',host).forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i;
+    if(i===ok){b.classList.add('ok');$$('.opt',host).forEach(x=>x.disabled=true);fb.className='fb show ok';fb.innerHTML='✔ '+okMsg;speak(okMsg);onOk&&onOk();}
+    else{b.classList.add('no');b.disabled=true;fb.className='fb show no';const m=Array.isArray(noMsg)?noMsg[i]:noMsg;fb.innerHTML='✘ '+m;speak(m);}
+  });
+}
+
+/* ---- thuyết minh: phát file audio theo mã (xem thuyet-minh.json) ---- */
+const VO={"1.1": "https://assets.yoolife.com.vn/yootek/1794817672877-5174.mp3", "1.2": "https://assets.yoolife.com.vn/yootek/1794817677037-1444.mp3", "1.3": "https://assets.yoolife.com.vn/yootek/1794817681124-5338.mp3", "1.4": "https://assets.yoolife.com.vn/yootek/1794817685411-3931.mp3", "1.5": "https://assets.yoolife.com.vn/yootek/1794817689928-6593.mp3", "1.6": "https://assets.yoolife.com.vn/yootek/1794817693936-9600.mp3", "1.7": "https://assets.yoolife.com.vn/yootek/1794817698193-3980.mp3", "1.8": "https://assets.yoolife.com.vn/yootek/1794817702591-8559.mp3", "2.1": "https://assets.yoolife.com.vn/yootek/1794817707163-3445.mp3", "2.2": "https://assets.yoolife.com.vn/yootek/1794817711309-2139.mp3", "3.1": "https://assets.yoolife.com.vn/yootek/1794817715290-6031.mp3", "3.2": "https://assets.yoolife.com.vn/yootek/1794817719315-9404.mp3", "4.1": "https://assets.yoolife.com.vn/yootek/1794817723583-8032.mp3", "4.2": "https://assets.yoolife.com.vn/yootek/1794817728095-6065.mp3", "5.1": "https://assets.yoolife.com.vn/yootek/1794817732373-3211.mp3", "5.2": "https://assets.yoolife.com.vn/yootek/1794817736547-9212.mp3", "5.3": "https://assets.yoolife.com.vn/yootek/1794817741120-9868.mp3", "6.1": "https://assets.yoolife.com.vn/yootek/1794817745490-3865.mp3", "6.2": "https://assets.yoolife.com.vn/yootek/1794817749740-6771.mp3", "7.1": "https://assets.yoolife.com.vn/yootek/1794817754218-8108.mp3"};
+let narrOn=true,voQ=[],voA=null;
+function stopVO(){voQ=[];if(voA){voA.pause();voA.onended=null;voA=null;}}
+function playNext(){if(!voQ.length){voA=null;return;}voA=new Audio(VO[voQ.shift()]);voA.onended=playNext;voA.play().catch(()=>{});}
+function speak(id){ // chỉ phát các mã có trong VO; câu phản hồi đúng/sai không có audio
+  const ids=(Array.isArray(id)?id:[id]).filter(x=>VO[x]);
+  if(!narrOn||!ids.length)return;
+  stopVO();voQ=ids;playNext();
+}
+$('#btnNarration').onclick=e=>{
+  narrOn=!narrOn;e.currentTarget.setAttribute('aria-pressed',narrOn);
+  if(narrOn)speak(STEPS[cur].say);else stopVO();
+};
+$('#btnFullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{});else document.exitFullscreen?.().catch(()=>{});};
+
+/* =====================================================================
+   4. Nội dung các bước – PHẦN 2: Trục đối xứng của một số hình phẳng
+   ===================================================================== */
+let busy=false;
+async function run(fn){if(busy)return;busy=true;try{await fn();}finally{busy=false;}}
+async function foldCheck(okMsg='✔ Hai nửa chồng khít lên nhau!',noMsg='✘ Hai nửa KHÔNG chồng khít'){
+  verdict(null);const e=epoch;const done=await foldTo(1);if(!done||e!==epoch)return null;
+  const s=matchScore(F.canvas,F.axis.a/DEG,F.axis.px,F.axis.py);const ok=s>=0.98;
+  verdict(ok?'ok':'no',ok?okMsg:noMsg);return ok;
+}
+async function unfold(){verdict(null);await foldTo(0);}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ---- các hình phẳng của phần 2 ---- */
+const RA=Math.atan2(1.25,0.8)/DEG;
+const HEX=[0,1,2,3,4,5].map(i=>[1.15*Math.cos(i*PI/3),1.15*Math.sin(i*PI/3)]);
+const P2={
+  circle:{name:'Hình tròn',draw:g=>{disk(g,0,0,1.1,'#2f9be0','#1b5f96',0.04);disk(g,0,0,0.045,'#fff');}},
+  rh:{name:'Hình thoi',ans:2,draw:g=>poly(g,[[0,-1.25],[0.8,0],[0,1.25],[-0.8,0]],'#e8564a','#a3291f',0.04),
+      cands:[{a:90,ok:1},{a:0,ok:1},{a:RA,ok:0},{a:180-RA,ok:0}]},
+  rect:{name:'Hình chữ nhật',ans:2,draw:g=>poly(g,[[-1.2,-0.7],[1.2,-0.7],[1.2,0.7],[-1.2,0.7]],'#f6e04b','#8a7a12',0.04),
+      cands:[{a:90,ok:1},{a:0,ok:1},{a:Math.atan2(1.4,2.4)/DEG,ok:0},{a:180-Math.atan2(1.4,2.4)/DEG,ok:0}]},
+  seg:{name:'Đoạn thẳng',draw:g=>{line(g,[[-1.1,0],[1.1,0]],0.09,'#7a52c7');disk(g,-1.1,0,0.09,'#7a52c7');disk(g,1.1,0,0.09,'#7a52c7');},
+      cands:[{a:90,off:0.45,ok:0},{a:90,ok:1},{a:60,ok:0},{a:0,ok:1}]},
+  tri:{name:'Tam giác đều',draw:SHAPES.tri.draw,cands:[{a:0,ok:0},{a:90,ok:1},{a:30,ok:1},{a:150,ok:1}]},
+  sq:{name:'Hình vuông',draw:SHAPES.sq.draw,cands:[{a:20,ok:0},{a:90,ok:1},{a:0,ok:1},{a:45,ok:1}]},
+  hex:{name:'Lục giác đều',draw:g=>poly(g,HEX,'#5fb3a9','#2f7d74',0.04),cands:[{a:15,ok:0},{a:0,ok:1},{a:90,ok:1},{a:60,ok:1}]},
+  star:{name:'Ngôi sao sáu cánh',draw:g=>{
+    const T=o=>[0,1,2].map(i=>[1.2*Math.cos((o+120*i)*DEG),1.2*Math.sin((o+120*i)*DEG)]);
+    poly(g,T(-90),null,'#2f74d0',0.13);poly(g,T(90),null,'#2f74d0',0.13);}},
+  cham:{name:'Tháp Chàm',draw:g=>{
+    const b='#b5653a',d='#8a4b2a',k='#3b2416';
+    poly(g,[[-1.15,1.1],[1.15,1.1],[1.05,0.88],[-1.05,0.88]],'#9c8f7a');
+    poly(g,[[-0.62,0.88],[0.62,0.88],[0.62,-0.1],[-0.62,-0.1]],b,d,0.03);
+    poly(g,[[-0.72,-0.1],[0.72,-0.1],[0.62,-0.2],[-0.62,-0.2]],d);
+    poly(g,[[-0.5,-0.2],[0.5,-0.2],[0.5,-0.55],[-0.5,-0.55]],b,d,0.03);
+    poly(g,[[-0.58,-0.55],[0.58,-0.55],[0.5,-0.63],[-0.5,-0.63]],d);
+    poly(g,[[-0.38,-0.63],[0.38,-0.63],[0.38,-0.9],[-0.38,-0.9]],b,d,0.03);
+    poly(g,[[-0.3,-0.9],[0.3,-0.9],[0,-1.25]],d);
+    [-0.5,0.5].forEach(x=>{poly(g,[[x-0.08,-0.1],[x+0.08,-0.1],[x,-0.32]],d);});
+    [-0.4,0.4].forEach(x=>line(g,[[x,0.85],[x,0.0]],0.05,d));
+    g.beginPath();g.moveTo(-0.18,0.88);g.lineTo(-0.18,0.4);g.arc(0,0.4,0.18,PI,0);g.lineTo(0.18,0.88);g.fillStyle=k;g.fill();
+    [-0.25,0.25].forEach(x=>{g.beginPath();g.moveTo(x-0.08,-0.25);g.lineTo(x-0.08,-0.42);g.arc(x,-0.42,0.08,PI,0);g.lineTo(x+0.08,-0.25);g.fillStyle=k;g.fill();});
+    disk(g,0,-0.76,0.07,k);}},
+};
+const candPos=c=>[(c.off||0)*Math.sin(c.a*DEG),-(c.off||0)*Math.cos(c.a*DEG)];
+const NUM=['①','②','③','④'];
+
+/* ---- chữ cái để cắt giấy (nửa bên phải, toạ độ canvas: y hướng xuống) ---- */
+PAPER.col='#a9d8f5';PAPER.edge='#5aa9d6';
+const mkHalf=pts=>g=>{g.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)g.lineTo(...pts[i]);};
+const CUTL={
+  A:{name:'Chữ A',rot:0,pts:[[0,-1.05],[0.22,-1.05],[0.78,1.0],[0.48,1.0],[0.36,0.52],[0,0.52]],
+     hole:mkHalf([[0,-0.45],[0.08,-0.45],[0.27,0.22],[0,0.22]])},
+  E:{name:'Chữ E',rot:90,pts:[[0,-0.6],[1.0,-0.6],[1.0,0.6],[0.7,0.6],[0.7,-0.3],[0.13,-0.3],[0.13,0.45],[0,0.45]]},
+  T:{name:'Chữ T',rot:0,pts:[[0,-1.0],[0.85,-1.0],[0.85,-0.62],[0.2,-0.62],[0.2,1.0],[0,1.0]]},
+};
+Object.values(CUTL).forEach(c=>{c.half=mkHalf(c.pts);c.y0=Math.min(c.pts[0][1],c.pts.at(-1)[1]);c.y1=Math.max(c.pts[0][1],c.pts.at(-1)[1]);});
+/* chữ cái nét đều cho Tranh luận 2 */
+const LT={
+  T:g=>{line(g,[[-0.75,-0.9],[0.75,-0.9]],LW,LB);line(g,[[0,-0.9],[0,0.95]],LW,LB);},
+  M:g=>line(g,[[-0.75,0.95],[-0.65,-0.95],[0,0.45],[0.65,-0.95],[0.75,0.95]],LW,LB),
+  E:LETTERS.E,
+};
+
+const TIPS2={
+  circle:'<b>Kéo trực tiếp trục d</b> trên hình: kéo thân trục để dời, kéo đầu trục (chỗ chữ <i>d</i>) để xoay. Bấm <b>Gấp</b> để kiểm tra – thử nhiều đường qua tâm và cả đường không qua tâm.',
+  lab:'<b>Kéo trục d</b> trên hình (thân trục: dời, đầu trục chỗ chữ <i>d</i>: xoay) rồi bấm <b>Gấp</b>. Đường nào làm hai phần <b>chồng khít</b> là một trục đối xứng và được tô <b>xanh lá</b>.',
+  th1:'Chọn hình ở các tab bên phải, <b>kéo trục d</b> rồi bấm <b>Gấp</b>. Mỗi hình chỉ cần tìm được <b>một</b> trục đối xứng.',
+  cut:'<b>①</b> Kéo mép phải tờ giấy sang trái để gấp đôi theo trục đối xứng. <b>②</b> Vẽ theo nét đứt (bắt đầu và kết thúc ở nếp gấp vàng) hoặc bấm <b>Cắt theo mẫu</b>. <b>③</b> Kéo lớp giấy phía trên sang phải để mở ra.',
+  guess:'Đây là mảnh giấy <b>đang gấp</b> – nét đứt vàng là nếp gấp. Đoán chữ cái ở bảng bên phải, rồi xem mảnh giấy mở ra.',
+  chal:'Kéo trục d (thân trục: dời, đầu trục: xoay) đến vị trí em dự đoán rồi bấm <b>Gấp</b> để kiểm tra.',
+};
+
+/* Bảng thử các đường gấp ①–④ của một hình (dùng cho HĐ5, HĐ6, Thực hành 1, Tranh luận 1) */
+function foldLab(key,{onFound,showAll}={}){
+  const s=P2[key];let ci=0;const found=new Set();
+  const drawMarks=()=>{clearMarks();s.cands.forEach((c,i)=>{if(i!==ci&&(found.has(i)||showAll)&&c.ok){const [x,y]=candPos(c);addMark(c.a,0x6fa85b,1,null,x,y);}});};
+  const sel=()=>{epoch++;busy=false;verdict(null);setCanvas(mk(s.draw));const c=s.cands[ci],[x,y]=candPos(c);setAxis(c.a,x,y);setT(0);showAxis(true);ghost(true);render();drawMarks();
+    axisDrag=(a,o)=>{if(ci>=0){ci=-1;$$('[data-ci]').forEach(b=>b.classList.remove('on'));drawMarks();}setAxis(a,o*Math.sin(a*DEG),-o*Math.cos(a*DEG));};};
+  const render=()=>{
+    dock(`<div class="grp"><button class="dk pri" id="bFold">Gấp</button><button class="dk" id="bOpen">Mở</button></div>`,TIPS2.lab);
+    $$('[data-ci]').forEach(b=>b.onclick=()=>{ci=+b.dataset.ci;sel();});
+    $('#bFold').onclick=()=>run(async()=>{const ok=await foldCheck('✔ Chồng khít – đây là một trục đối xứng!','✘ Không chồng khít – không phải trục đối xứng');
+      if(ok){let i=ci;if(i<0){const A=((F.axis.a/DEG)%180+180)%180,off=Math.hypot(F.axis.px,F.axis.py);
+        i=s.cands.findIndex(c=>c.ok&&Math.abs((((c.a-A)%180)+270)%180-90)<1&&Math.abs((c.off||0)-off)<0.05);}
+        if(i>=0)found.add(i);render();drawMarks();onFound&&onFound(found);}});
+    $('#bOpen').onclick=()=>run(unfold);
+  };
+  sel();
+  return {found,showAll(){showAll=true;render();drawMarks();}};
+}
+
+/* Câu hỏi chọn số */
+function numQ(host,{q,nums,ans,okMsg,noMsg,onOk}){
+  host.innerHTML=`<div class="card"><p><b>${q}</b></p><div class="cntq">${nums.map(n=>`<button class="nb" type="button" data-n="${n}">${n}</button>`).join('')}</div><div class="fb"></div></div>`;
+  const fb=$('.fb',host);let ok=false;
+  $$('.nb',host).forEach(b=>b.onclick=()=>{if(ok)return;
+    if(b.dataset.n===String(ans)){ok=true;b.classList.add('ok');fb.className='fb show ok';fb.innerHTML='✔ '+okMsg;speak(okMsg);onOk&&onOk();}
+    else{b.classList.remove('no');void b.offsetWidth;b.classList.add('no');fb.className='fb show no';fb.innerHTML='✘ '+noMsg;}});
+}
+
+/* ===== Ba hoạt động HĐ4–HĐ6: một bước, 3 tab con ===== */
+const ACTS=[
+/* ---------------- HĐ4: hình tròn ---------------- */
+{label:'Hình tròn',
+ say:'1.2',
+ mount(p,done){
+  setCanvas(mk(P2.circle.draw));let ang=90,off=0;const tried=new Set();
+  const apply=()=>setAxis(ang,off*Math.sin(ang*DEG),-off*Math.cos(ang*DEG));
+  axisDrag=(a,o)=>{ang=a;off=o;apply();};apply();showAxis(true);ghost(true);
+  dock(`<div class="grp"><button class="dk pri" id="bFold">Gấp</button><button class="dk" id="bOpen">Mở</button></div>`,TIPS2.circle);
+  $('#bFold').onclick=()=>run(async()=>{const ok=await foldCheck('✔ Chồng khít – trục đi qua tâm là trục đối xứng!','✘ Không chồng khít – đường thẳng này không đi qua tâm');
+    if(ok){tried.add(ang);addMark(ang,0x6fa85b,0.9);$('#tried').className='fb show info';
+      $('#tried').innerHTML=`Em đã tìm được <b>${tried.size}</b> trục đối xứng (tô xanh lá).${tried.size>=3?' Hình như đường nào đi qua tâm cũng được!':' Hãy xoay trục d sang hướng khác và thử lại.'}`;}});
+  $('#bOpen').onclick=()=>run(unfold);
+  p.innerHTML=`<h2>Trục đối xứng của hình tròn</h2>
+   <div class="fb" id="tried"></div><div id="q1"></div><div id="r1"></div>`;
+  mcq($('#q1'),{q:'Trục đối xứng của hình tròn là…',
+    opts:['Chỉ đường thẳng đứng đi qua tâm.','Mỗi đường thẳng đi qua tâm của hình tròn.','Bất kì đường thẳng nào cắt hình tròn.'],ok:1,
+    okMsg:'Chính xác! Mỗi đường thẳng đi qua tâm đều là một trục đối xứng của hình tròn.',
+    noMsg:['Chưa đúng. Hãy xoay trục d sang hướng khác (vẫn qua tâm) rồi gấp thử nhé!','','Chưa đúng. Hãy dời trục d ra khỏi tâm rồi gấp thử – hai phần có chồng khít không?'],
+    onOk:()=>{speak('1.3');$('#r1').innerHTML=`<div class="kcard"><div class="kh">Kết quả</div><p>Mỗi đường thẳng <span class="kwd">đi qua tâm</span> là một trục đối xứng của hình tròn – hình tròn có <b>vô số</b> trục đối xứng.</p></div>`;done();}});
+ }},
+/* ---------------- HĐ5: hình thoi ---------------- */
+{label:'Hình thoi',
+ say:'1.4',
+ mount(p,done){cutShape(p,()=>lab(p,done,'rh',{chip:'HĐ5',
+   q:'Cắt một hình thoi bằng giấy. Hãy tìm trục đối xứng của nó bằng cách gấp giấy. Trục đối xứng của nó là đường thẳng nào? Em tìm được mấy trục đối xứng?',
+   mq:'Trục đối xứng của hình thoi là…',mo:['Các đường chéo của hình thoi.','Các đường thẳng nối trung điểm hai cạnh đối diện.','Các cạnh của hình thoi.'],
+   res:'Hình thoi có <b>2</b> trục đối xứng: <span class="kwd">mỗi đường chéo</span> là một trục đối xứng của hình thoi.'}),'rh',[[0,-1.25],[0.8,0],[0,1.25],[-0.8,0]],1.25,1.45);}},
+/* ---------------- HĐ6: hình chữ nhật ---------------- */
+{label:'Hình chữ nhật',
+ say:'1.4',
+ mount(p,done){cutShape(p,()=>lab(p,done,'rect',{chip:'HĐ6',
+   q:'Vẽ rồi cắt một hình chữ nhật bằng giấy. Hãy tìm trục đối xứng của nó bằng cách gấp giấy. Trục đối xứng của nó là đường thẳng nào? Em tìm được mấy trục đối xứng?',
+   mq:'Trục đối xứng của hình chữ nhật là…',mo:['Các đường chéo của hình chữ nhật.','Các đường thẳng đi qua trung điểm hai cạnh đối diện.','Các cạnh của hình chữ nhật.'],
+   res:'Hình chữ nhật có <b>2</b> trục đối xứng: <span class="kwd">mỗi đường thẳng đi qua trung điểm hai cạnh đối diện</span>. Chú ý: đường chéo <i>không</i> phải trục đối xứng của hình chữ nhật.'}),'rect',[[-1.2,-0.7],[1.2,-0.7],[1.2,0.7],[-1.2,0.7]],1.42,1.0);}},
+];
+/* HĐ5 – bước 1: học sinh tự cắt hình thoi; rê chuột dọc nét đứt, đường cắt tự thẳng theo cạnh */
+function cutShape(p,next,key,V,PW,PH){ // V: đỉnh (toạ độ canvas, y xuống); PW,PH: nửa kích thước tờ giấy
+  let e=0,t=0,active=false;
+  const draw=()=>setCanvas(mk(g=>{
+    g.fillStyle='#fde2dc';g.fillRect(-PW,-PH,2*PW,2*PH);g.lineWidth=0.02;g.strokeStyle='#e9b3a8';g.strokeRect(-PW,-PH,2*PW,2*PH);
+    g.setLineDash([0.07,0.06]);poly(g,V,null,'#c0574a',0.03);g.setLineDash([]);
+    const pts=[V[0]];for(let i=0;i<e;i++)pts.push(V[(i+1)%4]);
+    if(e<4){const a=V[e],b=V[(e+1)%4];pts.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]);}
+    line(g,pts,0.05,'#7a1f16');
+    if(e<4)disk(g,...pts.at(-1),0.06,'#ffcf5a','#7a1f16',0.02);
+  }));
+  const tip=()=>{const a=V[e%4],b=V[(e+1)%4],q=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];scissor.position.set(q[0],-q[1],0.1);scissor.visible=e<4;};
+  const finish=()=>run(async()=>{
+    interact=null;controls.enableRotate=true;scissor.visible=false;view.style.cursor='';
+    verdict('ok',`✔ Đã cắt xong ${P2[key].name.toLowerCase()}!`);
+    await tween(700,k=>{F.matFix.opacity=F.matMov.opacity=1-k;});
+    setCanvas(mk(P2[key].draw));
+    await tween(500,k=>{F.matFix.opacity=F.matMov.opacity=k;});
+    F.matFix.opacity=1;verdict(null);
+  }).then(next);
+  setCanvas(mk(()=>{}));setAxis(90);setT(0);showAxis(false);ghost(false);draw();tip();
+  verdict('info',`✂ Rê chuột dọc theo nét đứt để cắt ${P2[key].name.toLowerCase()}`);controls.enableRotate=false;
+  const near=P=>{const x=P.x,y=-P.y,a=V[e],b=V[(e+1)%4],dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy;
+    const u=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/L2));if(Math.hypot(b[0]-x,b[1]-y)<0.45)return {u:1,d:0};return {u,d:Math.hypot(a[0]+dx*u-x,a[1]+dy*u-y)};};
+  interact={
+    hover(P){if(e>=4)return '';const {d}=near(P);return d<0.35?'crosshair':'';},
+    down(P){if(e>=4)return false;const {d}=near(P);if(d>0.35)return false;active=true;verdict(null);return true;},
+    move(P){if(!active||e>=4)return;let ch=false;
+      for(let k=0;k<4&&e<4;k++){const {u,d}=near(P);if(d>0.45||u<=t)break;t=u;ch=true;if(t>0.93){e++;t=0;}else break;}
+      if(e>=4){draw();active=false;finish();return;}if(ch){draw();tip();}},
+    up(){active=false;if(e<4)verdict('info','✂ Tiếp tục rê chuột dọc nét đứt từ chấm vàng');},
+  };
+  p.innerHTML=`<h2>Cắt ${P2[key].name.toLowerCase()} bằng giấy</h2>`;
+}
+function lab(p,done,key,{chip,q,mq,mo,res}){
+  speak(key==='rh'?'1.5':'1.7');
+  const s=P2[key];
+  const L=foldLab(key,{onFound:f=>{$('#lf').className='fb show info';$('#lf').innerHTML=`Em đã tìm được <b>${f.size}</b> trục đối xứng.`;}});
+  p.innerHTML=`<h2>Trục đối xứng của ${s.name.toLowerCase()}</h2>
+   <div class="fb" id="lf"></div><div id="qa"></div><div id="qb"></div><div id="rr"></div>`;
+  numQ($('#qa'),{q:`Em tìm được mấy trục đối xứng của ${s.name.toLowerCase()}?`,nums:[1,2,3,4],ans:s.ans,
+    okMsg:`Đúng rồi! ${s.name} có ${s.ans} trục đối xứng.`,noMsg:'Chưa đúng. Hãy kéo trục d theo nhiều hướng, gấp thử rồi đếm lại nhé!',
+    onOk:()=>{L.showAll();
+      mcq($('#qb'),{q:mq,opts:mo,ok:key==='rh'?0:1,okMsg:'Chính xác!',noMsg:'Chưa đúng. Quan sát các trục màu xanh lá ở khung bên trái nhé!',
+        onOk:()=>{speak(key==='rh'?'1.6':'1.8');$('#rr').innerHTML=`<div class="kcard"><div class="kh">Kết quả</div><p>${res}</p></div>`;done();}});}});
+}
+
+const STEPS=[
+/* ---------------- HĐ4–HĐ6 ---------------- */
+{label:'Khám phá',
+ say:['1.1','1.2'],
+ mount(p){
+  const doneSet=new Set();let a=0;
+  p.innerHTML=`<div class="subtabs" id="subtabs"></div><div id="actBody"></div>`;
+  const tabs=()=>{$('#subtabs').innerHTML=ACTS.map((x,i)=>`<button class="subtab ${i===a?'on':''} ${doneSet.has(i)?'done':''}" type="button" data-a="${i}">${doneSet.has(i)?'<b>✓</b>':''}<span>${x.label}</span></button>`).join('');
+    $$('#subtabs .subtab').forEach(b=>b.onclick=()=>open(+b.dataset.a));};
+  const open=(i,quiet)=>{
+    a=i;resetScene();tabs();const body=$('#actBody');body.innerHTML='';sidebody.scrollTop=0;
+    ACTS[i].mount(body,()=>{doneSet.add(i);tabs();
+      if(doneSet.size===3)complete(0);
+      else if(i<2){const w=document.createElement('div');w.className='next-wrap';w.innerHTML=`<button class="qbtn next-btn" type="button">Tiếp tục: ${ACTS[i+1].label} ▶</button>`;w.firstChild.onclick=()=>open(i+1);body.appendChild(w);setTimeout(()=>w.scrollIntoView({behavior:'smooth',block:'nearest'}),150);}});
+    if(!quiet)speak(ACTS[i].say);
+  };
+  open(0,true);
+ }},
+/* ---------------- Nhận xét ---------------- */
+{label:'Nhận xét',
+ say:['2.1','2.2'],
+ mount(p){
+  const FIG={circle:[0,30,60,90,120,150],rh:[90,0],rect:[90,0]};
+  const show=k=>{epoch++;busy=false;verdict(null);clearMarks();setCanvas(mk(P2[k].draw));setAxis(FIG[k][0]);setT(0);showAxis(true);ghost(true);axisDrag=(a,o)=>setAxis(a,o*Math.sin(a*DEG),-o*Math.cos(a*DEG));
+    FIG[k].forEach(a=>addMark(a,0x6fa85b,0.8));$$('[data-fig]').forEach(x=>x.classList.toggle('on',x.dataset.fig===k));};
+  dock(`<div class="grp"><span class="gl">Hình</span>${Object.keys(FIG).map(k=>`<button class="dk" data-fig="${k}">${P2[k].name}</button>`).join('')}</div>
+   <div class="grp"><button class="dk pri" id="bFold">Gấp theo d</button><button class="dk" id="bOpen">Mở</button></div>`,'Chọn hình, <b>kéo trục d</b> trên hình (kéo thân trục để dời, kéo đầu trục chỗ chữ <i>d</i> để xoay) rồi bấm <b>Gấp theo d</b>. Các trục đối xứng được tô xanh lá.');
+  $$('[data-fig]').forEach(b=>b.onclick=()=>show(b.dataset.fig));
+  $('#bFold').onclick=()=>run(()=>foldCheck('✔ Chồng khít – d là trục đối xứng!','✘ Không chồng khít – d không phải trục đối xứng'));$('#bOpen').onclick=()=>run(unfold);
+  p.innerHTML=`${head('Kiến thức','Nhận xét')}
+   <div class="kcard"><div class="kh">Ghi nhớ</div><ul>
+    <li>Mỗi đường thẳng <span class="red">đi qua tâm</span> là một trục đối xứng của hình tròn.</li>
+    <li>Mỗi <span class="red">đường chéo</span> là một trục đối xứng của hình thoi.</li>
+    <li>Mỗi đường thẳng đi qua <span class="red">trung điểm hai cạnh đối diện</span> là một trục đối xứng của hình chữ nhật.</li></ul>
+    <p class="hint">💡 Mỗi hình có thể có nhiều trục đối xứng.</p></div>
+   <div class="card"><p><b>✍ Điền vào chỗ trống</b> – chạm vào từ đúng theo thứ tự:</p>
+    <p id="fill" style="margin-top:8px">Mỗi đường thẳng đi qua <span class="blank">(1)</span> là một trục đối xứng của hình tròn. Mỗi <span class="blank">(2)</span> là một trục đối xứng của hình thoi. Mỗi đường thẳng đi qua <span class="blank">(3)</span> hai cạnh đối diện là một trục đối xứng của hình chữ nhật.</p>
+    <div class="bank" id="bank"></div><div class="fb" id="fbFill"></div></div>`;
+  const ans=['tâm','đường chéo','trung điểm'];
+  const bank=['cạnh','trung điểm','đỉnh','tâm','đường chéo','đường kính'];
+  let k=0;$('#bank').innerHTML=bank.map(w=>`<button class="wchip" type="button">${w}</button>`).join('');
+  const mark=()=>$$('.blank').forEach((b,i)=>b.classList.toggle('cur',i===k));mark();
+  $$('.wchip').forEach(b=>b.onclick=()=>{
+    if(k>=3)return;const fb=$('#fbFill');
+    if(b.textContent===ans[k]){const bl=$$('.blank')[k];bl.textContent=ans[k];bl.classList.add('filled');b.disabled=true;k++;mark();fb.className='fb';
+      if(k===3){fb.className='fb show ok';fb.innerHTML='✔ Hoàn toàn chính xác!';speak('Hoàn toàn chính xác!');complete(1);}}
+    else{b.classList.remove('no');void b.offsetWidth;b.classList.add('no');fb.className='fb show no';fb.innerHTML=`✘ “${b.textContent}” chưa phù hợp với chỗ trống (${k+1}). Đọc lại phần Ghi nhớ nhé!`;}
+  });
+  show('circle');
+ }},
+/* ---------------- Thực hành 1 ---------------- */
+{label:'Thực hành',
+ say:'3.1',
+ mount(p){
+  const KEYS=['seg','tri','sq','hex'],got=new Set();let k='seg';
+  const RES={seg:'Đường thẳng vuông góc với đoạn thẳng tại trung điểm của nó (hoặc chính đường thẳng chứa đoạn thẳng).',
+    tri:'Đường thẳng đi qua một đỉnh và trung điểm cạnh đối diện.',
+    sq:'Đường chéo, hoặc đường thẳng đi qua trung điểm hai cạnh đối diện.',
+    hex:'Đường chéo chính (nối hai đỉnh đối diện), hoặc đường thẳng đi qua trung điểm hai cạnh đối diện.'};
+  const tabs=()=>{$('#thTabs').innerHTML=KEYS.map(x=>`<button class="subtab ${x===k?'on':''}" type="button" data-k="${x}">${got.has(x)?'<b>✓</b>':''}<span>${P2[x].name}</span></button>`).join('');
+    $$('#thTabs .subtab').forEach(b=>b.onclick=()=>{k=b.dataset.k;open();});};
+  const list=()=>{$('#thList').innerHTML=KEYS.filter(x=>got.has(x)).map(x=>`<li><b>${P2[x].name}</b>: ${RES[x]}</li>`).join('');};
+  const open=()=>{resetScene();tabs();foldLab(k,{onFound:()=>{if(!got.has(k)){got.add(k);tabs();list();toast(`Tìm được trục đối xứng của ${P2[k].name.toLowerCase()}!`);
+      if(got.size===4){speak('3.2');$('#r9').innerHTML=`<div class="kcard"><div class="kh">Lưu ý</div><p>Mỗi hình trên đều có <b>nhiều hơn một</b> trục đối xứng: đoạn thẳng có 2, tam giác đều có 3, hình vuông có 4, lục giác đều có 6 trục đối xứng.</p></div>`;complete(2);}}}});};
+  p.innerHTML=`<div class="subtabs" id="thTabs"></div><h2>Tìm một trục đối xứng</h2>
+   <div class="card"><p><b>1.</b> Bằng cách gấp giấy, em hãy tìm một trục đối xứng của <b>đoạn thẳng</b>.</p>
+    <p><b>2.</b> Làm tương tự với hình <b>tam giác đều</b>, <b>hình vuông</b>, <b>hình lục giác đều</b>. Em hãy chỉ ra một trục đối xứng của mỗi hình trên.</p></div>
+   <div class="kcard"><div class="kh">Em đã tìm được</div><ul id="thList"></ul><p class="hint">Chọn từng hình ở các tab phía trên và gấp thử.</p></div><div id="r9"></div>`;
+  open();
+ }},
+/* ---------------- Tranh luận 1 ---------------- */
+{label:'Tranh luận',wide:true,
+ say:'4.1',
+ mount(p){
+  const L=foldLab('sq');
+  let sq=false,ci=false;
+  const fin=()=>{if(sq&&ci){speak('4.2');$('#r10').innerHTML=`<div class="kcard"><div class="kh">Kết luận</div><ul>
+    <li>Hình vuông có <b>4</b> trục đối xứng (2 đường chéo, 2 đường nối trung điểm hai cạnh đối) → Tròn nói “2 trục” là <b>sai</b>, Vuông nói “vô số trục” cũng <b>sai</b>.</li>
+    <li>Hình tròn có <b>vô số</b> trục đối xứng (mọi đường thẳng qua tâm) → Tròn nói <b>đúng</b>.</li></ul></div>`;complete(3);}};
+  p.innerHTML=`<h2>Ai nói đúng?</h2>
+   <div class="nar"><div class="av">🟡</div><div class="tx"><b>Tròn:</b> Này Vuông, tớ nghĩ cậu có hai trục đối xứng.</div></div>
+   <div class="nar"><div class="av">🟦</div><div class="tx"><b>Vuông:</b> Tớ lại nghĩ tớ có vô số trục đối xứng cơ!</div></div>
+   <div class="nar"><div class="av">🟡</div><div class="tx"><b>Tròn:</b> Hình Tròn là tớ đây mới có vô số trục đối xứng!</div></div>
+   <div class="nar"><div class="av">🟦</div><div class="tx"><b>Vuông:</b> Các bạn ơi, giúp tớ với!</div></div>
+   <div id="qs"></div><div id="qc"></div><div id="r10"></div>`;
+  numQ($('#qs'),{q:'Hình vuông có bao nhiêu trục đối xứng?',nums:[2,4,'Vô số'],ans:4,okMsg:'Đúng! Hình vuông có 4 trục đối xứng.',
+    noMsg:'Chưa đúng. Hãy kéo trục d trên hình vuông theo nhiều hướng rồi gấp thử để đếm nhé!',onOk:()=>{L.showAll();sq=true;fin();}});
+  numQ($('#qc'),{q:'Hình tròn có bao nhiêu trục đối xứng?',nums:[1,2,4,'Vô số'],ans:'Vô số',okMsg:'Đúng! Mọi đường thẳng đi qua tâm đều là trục đối xứng của hình tròn.',
+    noMsg:'Chưa đúng. Nhớ lại: mỗi đường thẳng đi qua tâm là một trục đối xứng.',onOk:()=>{ci=true;fin();}});
+ }},
+/* ---------------- Ứng dụng: cắt chữ (Thực hành 2) ---------------- */
+{label:'Cắt chữ bằng giấy',
+ say:['5.1','5.2'],
+ mount(p){
+  let L='A',phase='flat',pts=[];const made=new Set();
+  const MSG={flat:'👉 Kéo mép phải tờ giấy sang trái để gấp đôi',folded:'✂ Vẽ theo nét đứt, hoặc bấm “Cắt theo mẫu”',cutDone:'👉 Kéo lớp giấy phía trên sang phải để mở ra'};
+  const hint=k=>verdict('info',MSG[k]);
+  const inPaper=P=>Math.abs(P.y)<PAPER.h/2+0.02;
+  const reset=()=>{epoch++;busy=false;phase='flat';pts=[];scrap.visible=false;ink.visible=false;scissor.visible=false;F.root.rotation.z=0;
+    setCanvas(cPaper(CUTL[L]));setAxis(90);setT(0);showAxis(false);ghost(false);hint('flat');camTo(CAM0,600);interact=I;
+    $$('[data-l]').forEach(x=>x.classList.toggle('on',x.dataset.l===L));
+    $('#eNote').style.display=CUTL[L].rot?'block':'none';};
+  const opened=()=>run(async()=>{
+    phase='open';const c=CUTL[L],e=epoch;
+    if(c.rot){verdict('info','↻ Xoay tờ giấy lại cho chữ đứng thẳng…');await tween(900,k=>F.root.rotation.z=c.rot*DEG*k);if(e!==epoch)return;}
+    showAxis(true);verdict('ok',`✔ Mở ra: được ${c.name}! Nếp gấp chính là trục đối xứng.`);
+    made.add(L);tabs();
+    if(made.size===3){speak('5.3');$('#r11').innerHTML=`<div class="kcard"><div class="kh">Kết quả</div><p>Chữ <b>A</b> và chữ <b>T</b> có trục đối xứng <b>thẳng đứng</b>; chữ <b>E</b> có trục đối xứng <b>nằm ngang</b>. Ta gấp đôi tờ giấy theo trục đó, chỉ cắt <b>một nửa</b> chữ cái là được cả chữ.</p></div>`;complete(4);}
+  });
+  const settleFold=()=>run(async()=>{
+    const e=epoch,target=F.t>0.5?1:0;await foldTo(target,500);if(e!==epoch)return;
+    if(phase==='flat'){if(target){phase='folded';drawInk([]);ink.visible=true;hint('folded');}else hint('flat');}
+    else if(phase==='cutDone'){if(!target){busy=false;opened();}else hint('cutDone');}
+  });
+  const cutAnim=(q,cut)=>run(async()=>{
+    const e=epoch;phase='cutting';verdict(null);scissor.visible=true;ink.visible=true;
+    await tween(Math.min(2600,600+q.length*14),k=>{const i=Math.round(k*(q.length-1));scissor.position.set(q[i][0],q[i][1],0.1);drawInk(q,i);});
+    if(e!==epoch)return;scissor.visible=false;ink.visible=false;setCanvas(cCut(cut));
+    const st=new THREE.CanvasTexture(cScrap(cut));st.colorSpace=THREE.SRGBColorSpace;
+    scrap.material.map?.dispose();scrap.material.map=st;scrap.material.opacity=1;scrap.material.needsUpdate=true;
+    scrap.visible=true;scrap.position.set(-0.5,0,0.014);scrap.rotation.set(0,0,0);
+    await tween(1000,k=>{scrap.position.set(-0.5-1.4*k,-0.5*k,0.014+0.9*k);scrap.rotation.z=0.6*k;scrap.material.opacity=1-k;});
+    if(e!==epoch)return;scrap.visible=false;phase='cutDone';hint('cutDone');
+  });
+  const templPts=()=>{const P=CUTL[L].pts,q=[];for(let i=0;i<P.length-1;i++){const [a,b]=P[i],[c,d]=P[i+1],n=Math.max(1,Math.ceil(Math.hypot(c-a,d-b)/0.03));
+    for(let j=0;j<n;j++)q.push([-(a+(c-a)*j/n),-(b+(d-b)*j/n)]);}const l=P.at(-1);q.push([-l[0],-l[1]]);return q;};
+  const finishCut=()=>{
+    const q=pts.slice();pts=[];
+    const fail=m=>{verdict('no',m);drawInk([]);};
+    if(q.length<6)return fail('✘ Đường cắt quá ngắn – hãy vẽ lại nhé!');
+    if(q[0][0]<-0.2||q.at(-1)[0]<-0.2)return fail('✘ Đường cắt phải bắt đầu và kết thúc ở nếp gấp (vạch vàng). Vẽ lại nhé!');
+    q[0]=[0,q[0][1]];q[q.length-1]=[0,q.at(-1)[1]];
+    const ys=[-q[0][1],-q.at(-1)[1]];
+    cutAnim(q,{hole:CUTL[L].hole,y0:Math.min(...ys),y1:Math.max(...ys),half(g){g.moveTo(-q[0][0],-q[0][1]);for(let i=1;i<q.length;i++)g.lineTo(-q[i][0],-q[i][1]);}});
+  };
+  const I={mode:null,
+    hover(P){if(!inPaper(P))return '';
+      if(phase==='flat'&&P.x>0.05&&P.x<1.05)return 'grab';
+      if(phase==='cutDone'&&P.x<-0.05&&P.x>-1.05)return 'grab';
+      if(phase==='folded'&&P.x>-1.02&&P.x<0.08)return 'crosshair';return '';},
+    down(P){const c=this.hover(P);if(!c)return false;
+      if(c==='grab'){this.mode='fold';verdict(null);view.style.cursor='grabbing';}
+      else{this.mode='draw';verdict(null);pts=[[Math.min(P.x,0),P.y]];drawInk(pts);}return true;},
+    move(P){if(this.mode==='fold')setT(Math.acos(Math.max(-1,Math.min(1,P.x)))/PI);
+      else if(this.mode==='draw'){const q=[Math.max(-1,Math.min(0,P.x)),Math.max(-PAPER.h/2,Math.min(PAPER.h/2,P.y))],l=pts.at(-1);
+        if(Math.hypot(q[0]-l[0],q[1]-l[1])>0.02){pts.push(q);drawInk(pts);}}},
+    up(){const m=this.mode;this.mode=null;if(m==='fold')settleFold();else if(m==='draw')finishCut();},
+  };
+  dock(`<div class="grp"><button class="dk pri" id="bAuto">✂ Cắt theo mẫu</button><button class="dk" id="bReset">↺ Làm lại</button></div>`,TIPS2.cut);
+  $('#bAuto').onclick=()=>{if(busy)return;
+    if(phase==='flat'){run(async()=>{const e=epoch;await foldTo(1,700);if(e!==epoch)return;phase='folded';drawInk([]);busy=false;cutAnim(templPts(),CUTL[L]);});}
+    else if(phase==='folded')cutAnim(templPts(),CUTL[L]);
+    else if(phase==='cutDone')run(async()=>{const e=epoch;await foldTo(0,700);if(e!==epoch)return;busy=false;opened();});
+    else toast('Bấm “Làm lại” để cắt lần nữa');};
+  $('#bReset').onclick=reset;
+  const tabs=()=>{$('#lTabs').innerHTML=Object.keys(CUTL).map(k=>`<button class="subtab lt" type="button" data-l="${k}">${made.has(k)?'<b>✓</b>':''}<span>${k}</span></button>`).join('');
+    $$('#lTabs [data-l]').forEach(b=>{b.classList.toggle('on',b.dataset.l===L);b.onclick=()=>{L=b.dataset.l;reset();};});};
+  p.innerHTML=`<div class="subtabs" id="lTabs"></div><h2>Ứng dụng tính đối xứng để cắt chữ bằng giấy</h2>
+   <div class="fb show" id="eNote" style="display:none;background:#fff6dd;color:#6b4d13">💡 Trục đối xứng của chữ <b>E</b> nằm <b>ngang</b>, nên tờ giấy được xoay nghiêng để gấp – nửa chữ E đang nằm nghiêng.</div>
+   <div class="card"><p><b>Thực hành:</b> Bằng cách tương tự, hãy cắt chữ <span class="red">E</span>, <span class="red">T</span>.</p><p class="hint">Chọn chữ ở các tab phía trên. Cắt đủ 3 chữ A, E, T để hoàn thành.</p></div><div id="r11"></div>`;
+  tabs();reset();
+ }},
+/* ---------------- Thử thách nhỏ ---------------- */
+{label:'Thử thách nhỏ',
+ say:'6.1',
+ mount(p){
+  let k='cham',ang=90,off=0;const found={cham:new Set(),star:new Set()};let a1=false,a2=false;
+  const apply=()=>setAxis(ang,off*Math.sin(ang*DEG),-off*Math.cos(ang*DEG));
+  const sel=()=>{epoch++;busy=false;verdict(null);clearMarks();ang=90;off=0;setCanvas(mk(P2[k].draw));apply();setT(0);showAxis(true);ghost(true);
+    found[k].forEach(a=>addMark(a,0x6fa85b,0.9));$$('#chTabs .subtab').forEach(b=>b.classList.toggle('on',b.dataset.k===k));const q2=$('#q2');if(q2)q2.style.display=k==='star'?'':'none';const q1=$('#q1');if(q1)q1.style.display=k==='cham'?'':'none';};
+  axisDrag=(a,o)=>{ang=a;off=o;apply();};
+  dock(`<div class="grp"><button class="dk pri" id="bFold">Gấp</button><button class="dk" id="bOpen">Mở</button></div>`,TIPS2.chal);
+  $('#bFold').onclick=()=>run(async()=>{const ok=await foldCheck('✔ Chồng khít – đây là một trục đối xứng!','✘ Không chồng khít');
+    if(ok&&off===0&&!found[k].has(ang%180)){found[k].add(ang%180);addMark(ang,0x6fa85b,0.9);toast(`Đã tìm được ${found[k].size} trục đối xứng`);}});
+  $('#bOpen').onclick=()=>run(unfold);
+  const fin=()=>{if(a1&&a2){speak('6.2');$('#r13').innerHTML=`<div class="kcard"><div class="kh">Kết quả</div><ul>
+    <li><b>Tháp Chàm</b> có một trục đối xứng là đường thẳng đứng đi qua đỉnh tháp và giữa cửa tháp.</li>
+    <li><b>Ngôi sao sáu cánh</b> có <b>6</b> trục đối xứng: 3 đường thẳng nối hai đỉnh đối diện và 3 đường thẳng đi qua hai “góc lõm” đối diện.</li></ul>
+    <p class="hint">🏛 Những công trình kiến trúc có tính đối xứng (như Kim tự tháp Kheops và tượng nhân sư) không những đẹp mà còn chắc chắn, bền vững.</p></div>`;complete(5);}};
+  p.innerHTML=`<div class="subtabs" id="chTabs">${['cham','star'].map(x=>`<button class="subtab" type="button" data-k="${x}"><span>${P2[x].name}</span></button>`).join('')}</div>
+   ${head('Thử thách nhỏ','Tìm trục đối xứng bằng quan sát')}
+   <div class="card"><p>Tính đối xứng là một yếu tố tạo nên sự cân đối, hài hoà của các hình. Tuy nhiên, không phải lúc nào ta cũng có thể gấp hình để biết hình có trục đối xứng hay không. Em hãy quan sát và cho biết vị trí trục đối xứng của hình <b>Tháp Chàm</b> và <b>ngôi sao sáu cánh</b> (nếu có).</p></div>
+   <div id="q1"></div><div id="q2"></div><div id="r13"></div>`;
+  $$('#chTabs .subtab').forEach(b=>b.onclick=()=>{k=b.dataset.k;sel();});
+  mcq($('#q1'),{q:'Trục đối xứng của Tháp Chàm là…',opts:['Đường thẳng nằm ngang đi qua giữa tháp.','Đường thẳng đứng đi qua đỉnh tháp.','Tháp Chàm không có trục đối xứng.'],ok:1,
+    okMsg:'Chính xác! Trục đối xứng của Tháp Chàm là đường thẳng đứng đi qua đỉnh tháp.',noMsg:'Chưa đúng. Hãy kéo trục d trên hình Tháp Chàm và gấp thử nhé!',onOk:()=>{a1=true;fin();}});
+  numQ($('#q2'),{q:'Ngôi sao sáu cánh có bao nhiêu trục đối xứng?',nums:[1,2,3,6],ans:6,okMsg:'Đúng! Ngôi sao sáu cánh có 6 trục đối xứng.',
+    noMsg:'Chưa đúng. Chọn tab “Ngôi sao sáu cánh”, xoay trục d qua tâm theo nhiều hướng để đếm nhé!',
+    onOk:()=>{[0,30,60,90,120,150].forEach(a=>found.star.add(a));if(k==='star')sel();a2=true;fin();}});
+  sel();
+ }},
+/* ---------------- Tổng kết ---------------- */
+{label:'Tổng kết',wide:true,
+ say:'7.1',
+ mount(p){
+  setCanvas(mk(P2.star.draw));setAxis(90);showAxis(true);ghost(true);[30,60,120,150,0].forEach(a=>addMark(a,0x6fa85b,0.9));
+  p.innerHTML=`${head('Tổng kết','Em đã học được gì?')}
+   <div class="kcard"><div class="kh">Trục đối xứng của một số hình</div><ul>
+    <li>Hình tròn: mỗi đường thẳng <b>đi qua tâm</b>.</li><li>Hình thoi: mỗi <b>đường chéo</b>.</li>
+    <li>Hình chữ nhật: mỗi đường thẳng đi qua <b>trung điểm hai cạnh đối diện</b>.</li></ul></div>
+   <div class="kcard"><div class="kh">Số trục đối xứng</div>
+    <div class="sumgrid"><div><b>∞</b>Hình tròn</div><div><b>2</b>Hình thoi</div><div><b>2</b>Hình chữ nhật</div><div><b>4</b>Hình vuông</div>
+     <div><b>3</b>Tam giác đều</div><div><b>6</b>Lục giác đều</div><div><b>2</b>Đoạn thẳng</div><div><b>6</b>Ngôi sao sáu cánh</div></div>
+    <p class="hint">Mỗi hình có thể có nhiều trục đối xứng.</p></div>
+   <div class="kcard"><div class="kh">Ứng dụng</div><p>Cắt chữ cái có trục đối xứng: <b>gấp đôi</b> tờ giấy theo trục đối xứng, cắt <b>một nửa</b> chữ rồi mở ra.</p></div>`;
+  controls.autoRotate=true;
+ }},
+];
+
+function multiSelect({ans,fb,btn,hint,onOk,onPick}){
+  const tiles=$$('#tiles .tile');let solved=false;
+  tiles.forEach(t=>t.onclick=()=>{if(!solved){t.classList.toggle('sel');t.classList.remove('wrong','right');}onPick&&onPick(t.dataset.k);});
+  btn.onclick=()=>{
+    const chosen=tiles.filter(t=>t.classList.contains('sel')).map(t=>t.dataset.k);
+    const miss=[...ans].filter(k=>!chosen.includes(k)),extra=chosen.filter(k=>!ans.has(k));
+    if(!miss.length&&!extra.length){solved=true;tiles.forEach(t=>{if(!onPick)t.disabled=true;if(ans.has(t.dataset.k))t.classList.add('right');});btn.disabled=true;fb.className='fb show ok';speak('Chính xác!');onOk();}
+    else{tiles.forEach(t=>{if(extra.includes(t.dataset.k)){t.classList.remove('wrong');void t.offsetWidth;t.classList.add('wrong');}});fb.className='fb show no';fb.innerHTML='✘ Chưa đúng. '+hint(miss,extra);}
+  };
+}
+
+/* =====================================================================
+   5. Điều phối bước + khoá tiến độ
+   ===================================================================== */
+let cur=0;const finished=new Set(); // các bước đã làm xong (chỉ để hiện dấu ✓, không khoá bước)
+function renderBar(){
+  stepsBar.innerHTML=STEPS.map((s,i)=>`<button class="step ${finished.has(i)?'done':''}" type="button" data-i="${i}" aria-pressed="${i===cur}"><b>${finished.has(i)?'✓':i+1}</b><span>${s.label}</span></button>`).join('');
+  $('#btnPrev').disabled=cur<=0;
+  $('#btnNext').disabled=cur>=STEPS.length-1;
+  $('#btnNext').classList.toggle('nudge',finished.has(cur)&&cur<STEPS.length-1);
+  stepsBar.children[cur]?.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+}
+stepsBar.onclick=e=>{const b=e.target.closest('.step');if(b)goTo(+b.dataset.i);};
+$('#btnPrev').onclick=()=>goTo(cur-1);
+$('#btnNext').onclick=()=>goTo(cur+1);
+window.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName))return;if(e.key==='ArrowRight')goTo(cur+1);else if(e.key==='ArrowLeft')goTo(cur-1);});
+
+function complete(i){
+  finished.add(i);
+  renderBar();
+  if(i===cur&&i<STEPS.length-1&&!$('.next-wrap.go')){
+    const w=document.createElement('div');w.className='next-wrap go';
+    w.innerHTML=`<button class="qbtn next-btn" type="button">Tiếp tục: ${STEPS[i+1].label} ▶</button>`;
+    w.firstChild.onclick=()=>goTo(i+1);
+    $('.sec',sidebody).appendChild(w);
+    setTimeout(()=>w.scrollIntoView({behavior:'smooth',block:'nearest'}),150);
+  }
+}
+function resetScene(){ // đặt lại cảnh 3D
+  epoch++;busy=false;controls.enableRotate=true;axisDrag=null;drag=null;interact=null;idrag=false;ink.visible=false;scissor.visible=false;controls.enabled=true;view.style.cursor='';highlightAxis(false);
+  flap=false;F.both=false;F.root.rotation.z=0;bfly.visible=false;scrap.visible=false;clearMarks();ghost(false);setT(0);verdict(null);dock('');
+  camTo(CAM0,700);
+}
+function goTo(n){
+  n=Math.max(0,Math.min(STEPS.length-1,n));
+  cur=n;resetScene();$('#stage').classList.toggle('full',!!STEPS[n].full);$('#stage').classList.toggle('wide',!!STEPS[n].wide);
+  controls.autoRotate=false;
+  stopVO();
+  sidebody.innerHTML='<div class="sec"></div>';sidebody.scrollTop=0;
+  STEPS[n].mount($('.sec',sidebody));
+  renderBar();
+  if(finished.has(n))complete(n);
+  speak(STEPS[n].say);
+}
+
+/* =====================================================================
+   6. Màn hình mở đầu
+   ===================================================================== */
+clearInterval(window.__introTick);
+$('#introBar').style.width='100%';
+setTimeout(()=>{$('#introStatus').innerHTML='<span class="ready-dot"></span>Đã sẵn sàng!';$('#introLoader').classList.add('ready');},500);
+$('#btnExplore').onclick=()=>{
+  $('#introLoader').classList.add('gone');setTimeout(()=>$('#introLoader').style.display='none',500);
+  $('#loadingEl').style.display='none';resize();goTo(0);
+  setTimeout(()=>$('#stageHint').classList.add('hide'),5000);
+};
+// cho phép mở thẳng một bước khi xem thử: ?step=5
+const qs=new URLSearchParams(location.search);
+
+window.__lesson={goTo,STEPS,matchScore,F};
+</script>
+</body>
+</html>
