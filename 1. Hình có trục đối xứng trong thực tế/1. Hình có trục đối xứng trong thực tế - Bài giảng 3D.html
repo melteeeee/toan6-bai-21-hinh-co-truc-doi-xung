@@ -103,6 +103,12 @@ button{font-family:inherit}
 .subtab:active{transform:translateY(1px)}
 .subtab.lt{font-size:19px;font-weight:800;color:#2a9fe0;padding:6px 4px}
 .subtab.lt.on{color:#fff}
+.sec.big h2{font-size:26px}
+.sec.big .kcard p,.sec.big .card p{font-size:19px;line-height:1.65}
+.sec.big .kcard .kh{font-size:13.5px}
+.sec.big .blank{min-width:110px}
+.sec.big .wchip{font-size:17.5px;padding:9px 16px}
+.sec.big .fb{font-size:17px}
 .tiles.gal{grid-template-columns:repeat(5,1fr)}
 .tile.cap{aspect-ratio:auto;flex-direction:column;gap:4px;padding:8px 4px 6px}
 .tile.cap img{width:100%;height:auto;aspect-ratio:1}
@@ -1049,6 +1055,7 @@ const STEPS=[
 {label:'Trục đối xứng là gì?',
  say:['2.1','2.2','2.3'],
  mount(p){
+  p.classList.add('big'); // chữ to hơn cho bước khái niệm
   const FIGS={a:{n:'a) Con bướm',c:()=>drawButterfly(PAL_BLUE,true)},b:{n:'b) Hình tròn',c:cCircle},c:{n:'c) Biểu tượng',c:cEmblem}};
   const show=async k=>{epoch++;busy=false;verdict(null);setCanvas(FIGS[k].c());setAxis(90);setT(0);showAxis(true);ghost(true);
     $$('[data-fig]').forEach(x=>x.classList.toggle('on',x.dataset.fig===k));
