@@ -122,6 +122,8 @@ svg.ov{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .clab{position:absolute;transform:translate(-50%,-50%);background:#fff;color:var(--brand-dark);font-weight:800;font-size:14px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer;border:2px solid var(--gold)}
 .axlab{position:absolute;transform:translate(-50%,-50%);background:var(--gold);color:#4a3200;font-weight:800;font-size:13px;padding:3px 10px;border-radius:99px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.4);animation:fade .5s ease both}
 .sub{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);max-width:88%;background:rgba(6,22,21,.78);color:#fff;font-size:17px;line-height:1.45;padding:8px 16px;border-radius:10px;text-align:center;z-index:4;transition:opacity .3s}
+.credit{position:absolute;right:8px;top:8px;z-index:3;font-size:11px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.45);padding:2px 8px;border-radius:6px;max-width:60%;text-align:right}
+.gal figcaption small{display:block;font-size:9.5px;font-weight:400;color:var(--muted);line-height:1.3}
 .sub:empty{opacity:0}
 .ask{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:4;background:var(--gold);color:#4a3200;font-weight:700;font-size:15px;padding:7px 16px;border-radius:99px;box-shadow:var(--sh-3);white-space:nowrap;animation:nudgePulse 1.4s infinite}
 .bigplay{position:absolute;inset:0;margin:auto;z-index:5;width:82px;height:82px;border-radius:50%;border:3px solid #fff;background:rgba(25,88,86,.85);color:#fff;font-size:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding-left:6px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
@@ -222,7 +224,7 @@ const DEV = /[?&]dev\b/.test(location.search);
    axis: {type:'v', at: % theo chiều ngang} hoặc {type:'h', at: % theo chiều dọc}
    cands: các đường gợi ý để HS chọn; ok:true là trục đối xứng           */
 const SCENES = [
-  { name:'Khuê Văn Các', place:'Văn Miếu – Quốc Tử Giám, Hà Nội',
+  { name:'Khuê Văn Các', credit:'Ảnh: dimthoughts / Flickr (CC BY-NC-SA 2.0)', place:'Văn Miếu – Quốc Tử Giám, Hà Nội',
     src:'https://assets.yoolife.com.vn/yootek/1794792263736-3977.jpg', W:1365, H:2048,
     axis:{type:'v',at:50.5}, cp:15.6, dur:28.2,
     aud:['https://assets.yoolife.com.vn/yootek/1794794552168-5529.mp3', 'https://assets.yoolife.com.vn/yootek/1794794556280-5587.mp3', 'https://assets.yoolife.com.vn/yootek/1794794560233-7850.mp3', 'https://assets.yoolife.com.vn/yootek/1794794577095-5260.mp3', 'https://assets.yoolife.com.vn/yootek/1794794580985-1929.mp3', 'https://assets.yoolife.com.vn/yootek/1794794584759-5048.mp3'], qa:'https://assets.yoolife.com.vn/yootek/1794794565073-3204.mp3', oka:'https://assets.yoolife.com.vn/yootek/1794794568980-8348.mp3', noa:'https://assets.yoolife.com.vn/yootek/1794794573214-5015.mp3',
@@ -236,7 +238,7 @@ const SCENES = [
     q:'Nếu gấp bức ảnh theo một đường thẳng để hai nửa chồng khít lên nhau, em sẽ gấp theo đường nào?',
     okMsg:'Chính xác! Gấp theo đường thẳng đứng chính giữa, nửa trái và nửa phải trùng khít nhau.',
     noMsg:'Chưa đúng. Gấp theo đường này, hai phần không chồng khít lên nhau. Thử đường khác nhé!' },
-  { name:'Mặt hồ soi bóng', place:'Một mặt hồ buổi sớm mai',
+  { name:'Mặt hồ soi bóng', credit:'Ảnh: debrakwalkercounseling.com', place:'Một mặt hồ buổi sớm mai',
     src:'https://assets.yoolife.com.vn/yootek/1794792269090-3749.webp', W:1100, H:504,
     axis:{type:'h',at:51.5}, cp:14.5, dur:27.8,
     aud:['https://assets.yoolife.com.vn/yootek/1794794588710-2684.mp3', 'https://assets.yoolife.com.vn/yootek/1794794592576-5423.mp3', 'https://assets.yoolife.com.vn/yootek/1794794596479-4237.mp3', 'https://assets.yoolife.com.vn/yootek/1794794612891-2249.mp3', 'https://assets.yoolife.com.vn/yootek/1794794617678-9321.mp3', 'https://assets.yoolife.com.vn/yootek/1794794621511-4850.mp3'], qa:'https://assets.yoolife.com.vn/yootek/1794794600469-4315.mp3', oka:'https://assets.yoolife.com.vn/yootek/1794794604484-8881.mp3', noa:'https://assets.yoolife.com.vn/yootek/1794794608487-9349.mp3',
@@ -250,7 +252,7 @@ const SCENES = [
     q:'Đường gấp nào giúp phần cảnh vật và phần bóng dưới nước chồng khít lên nhau?',
     okMsg:'Tuyệt! Đường mép nước nằm ngang chia ảnh thành hai phần giống nhau như soi gương.',
     noMsg:'Chưa đúng. Hãy tìm đường ngăn cách cảnh vật thật và bóng của nó dưới nước.' },
-  { name:'Tháp Eiffel', place:'Paris, nước Pháp',
+  { name:'Tháp Eiffel', credit:'Ảnh: Benh LIEU SONG / Wikimedia Commons (CC BY-SA 3.0)', place:'Paris, nước Pháp',
     src:'https://assets.yoolife.com.vn/yootek/1794792274883-6577.jpg', W:1280, H:2128,
     axis:{type:'v',at:49.2}, cp:13.0, dur:25.7,
     aud:['https://assets.yoolife.com.vn/yootek/1794795786673-5258.mp3', 'https://assets.yoolife.com.vn/yootek/1794795791720-9519.mp3', 'https://assets.yoolife.com.vn/yootek/1794795797393-6856.mp3', 'https://assets.yoolife.com.vn/yootek/1794795820624-3878.mp3', 'https://assets.yoolife.com.vn/yootek/1794795825056-5401.mp3', 'https://assets.yoolife.com.vn/yootek/1794795831009-9822.mp3'], qa:'https://assets.yoolife.com.vn/yootek/1794795810388-2441.mp3', oka:'https://assets.yoolife.com.vn/yootek/1794795810388-2441.mp3', noa:'https://assets.yoolife.com.vn/yootek/1794795815595-8997.mp3',
@@ -303,6 +305,7 @@ function buildPlayer(s){
       </div>
       <div class="ask hide" id="ask">⏸ Chạm vào đường gấp đúng trên hình</div>
       <div class="sub" id="sub"></div>
+      <span class="credit">${s.credit}</span>
       <button class="bigplay" id="bigplay" aria-label="Phát">▶</button>
     </div>
     <div class="ctrl">
@@ -421,7 +424,7 @@ function sceneLesson(i){
 function summary(){
   $('#vis').innerHTML=`<div class="gal">${SCENES.map((s,i)=>{
     const ax=s.axis.type==='v'?`left:calc(${s.axis.at}% - 2px);top:0;bottom:0;width:4px`:`top:calc(${s.axis.at}% - 2px);left:0;right:0;height:4px`;
-    return `<figure style="animation-delay:${i*.15}s"><div class="gw" data-w="${s.W}" data-h="${s.H}"><img src="${s.src}" alt="${s.name}"><span class="gx" style="${ax}"></span></div><figcaption>${s.name}</figcaption></figure>`;}).join('')}</div>`;
+    return `<figure style="animation-delay:${i*.15}s"><div class="gw" data-w="${s.W}" data-h="${s.H}"><img src="${s.src}" alt="${s.name}"><span class="gx" style="${ax}"></span></div><figcaption>${s.name}<small>${s.credit}</small></figcaption></figure>`;}).join('')}</div>`;
   fitGal();
   playA(S5[0],()=>playA(S5[1],()=>playA(S5[2])));
   $('#sidebody').innerHTML=`<section class="sec">
