@@ -242,6 +242,9 @@ button{font-family:inherit}
 .intro-explore:hover{background:rgba(47,130,125,.96)}
 .intro-credit{margin-top:30px;color:rgba(255,255,255,.86);font-size:12px}
 
+/* bước chữ to (Nhận xét) */
+.stage.big .sec h2{font-size:26px}.stage.big .kcard p,.stage.big .kcard li,.stage.big .card p{font-size:19px;line-height:1.65}
+.stage.big .kcard .kh{font-size:14px}.stage.big .wchip{font-size:17.5px;padding:9px 16px}.stage.big .fb{font-size:17.5px}.stage.big .hint{font-size:16px}
 /* bước rộng (Tổng kết): bảng bên phải chiếm 50% chiều ngang */
 @media (min-width:901px){.stage.wide .lesson{width:50%}.stage.wide .view{right:calc(50% + 60px)}.stage.wide .sumgrid{grid-template-columns:repeat(4,1fr)}.stage.wide .dock{right:calc(50% + 72px)}.stage.wide .verdict{left:calc(25% - 30px);max-width:calc(50% - 150px)}}
 @media (max-width:900px){
@@ -967,7 +970,7 @@ const STEPS=[
   open(0,true);
  }},
 /* ---------------- Nhận xét ---------------- */
-{label:'Nhận xét',
+{label:'Nhận xét',big:true,
  say:['2.1','2.2'],
  mount(p){
   const FIG={circle:[0,30,60,90,120,150],rh:[90,0],rect:[90,0]};
@@ -1202,7 +1205,7 @@ function resetScene(){ // đặt lại cảnh 3D
 }
 function goTo(n){
   n=Math.max(0,Math.min(STEPS.length-1,n));
-  cur=n;resetScene();$('#stage').classList.toggle('full',!!STEPS[n].full);$('#stage').classList.toggle('wide',!!STEPS[n].wide);
+  cur=n;resetScene();$('#stage').classList.toggle('full',!!STEPS[n].full);$('#stage').classList.toggle('wide',!!STEPS[n].wide);$('#stage').classList.toggle('big',!!STEPS[n].big);
   controls.autoRotate=false;
   stopVO();
   sidebody.innerHTML='<div class="sec"></div>';sidebody.scrollTop=0;
